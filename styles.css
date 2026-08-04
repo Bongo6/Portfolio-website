@@ -1,4 +1,6 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Jaro:wght@400;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Jersey+25&family=Jersey+10&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mardo:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Genos:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Syne:wght@400..800&display=swap');
 
 html, body {
   margin: 0;
@@ -6,14 +8,19 @@ html, body {
   height: 100%;
 }
 body {
-  background: #ffffff;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 100px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 100px);
-  background-size: 48px 48px;
+  background: #FF4400;
   color: #000;
   overflow: hidden;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Mardo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 20px solid #212121;
 }
 .words-container {
   position: fixed;
@@ -21,39 +28,130 @@ body {
   overflow: hidden;
   cursor: crosshair;
 }
-.word {
+
+.top-bar {
   position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 40px;
+  height: 64px;
+  background: #212121;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.top-words {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 24px;
+  pointer-events: none;
+}
+.top-words .word { color: #fff; text-shadow: none; font-size: 10px; text-transform: lowercase; }
+.word {
+  position: static;
   color: rgba(0,0,0,0.88);
-  font-size: 18px;
-  font-weight: 500;
+  font-family: 'Jersey 10', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
   letter-spacing: 0.02em;
   white-space: nowrap;
   pointer-events: none;
   text-shadow: 0 1px 6px rgba(0,0,0,0.08);
 }
-.center-name {
+.title-frame {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 320px;
-  font-family: 'Jaro', 'Segoe UI', sans-serif;
-  font-weight: 700;
-  text-transform: lowercase;
-  color: #fff;
-  letter-spacing: 0.02em;
-  -webkit-text-fill-color: #fff;
-  -webkit-text-stroke: 0.01px #000;
-  text-shadow: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  background: transparent;
-  padding: 0;
-  border: none;
+  background: #212121;
+  padding: 40px 120px;
+  display: inline-block;
+  z-index: 5;
   box-shadow: none;
-  pointer-events: none;
+}
+
+.title-frame::after {
+  /* small beveled bottom-right corner */
+  content: '';
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 100px;
+  height: 100px;
+  background: #FF4400;
+  clip-path: polygon(0% 100%, 100% 0, 100% 100%, 0% 100%);
+  box-shadow: none;
+  z-index: 2;
+}
+
+.center-name {
+  font-size: clamp(160px, 22vw, 520px);
+  font-family: 'Jersey 25', 'Mardo', 'Syne', 'Genos', 'Segoe UI', sans-serif;
+  font-weight: 000;
+  text-transform: uppercase;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  display: block;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: none;
+  text-rendering: geometricPrecision;
+  /* make edges crisper and blocky */
+  -webkit-text-stroke: 0px transparent;
+  filter: contrast(115%);
+  /* reinforce hard edges with multiple zero-offset shadows to avoid anti-aliasing */
+  /* use a tighter stepped shadow to create a pixel-block edge */
+  text-shadow: 
+    0px 0 #ffffff, 0px 0 #ffffff, 0 0px #ffffff, 0 -0px #ffffff,
+    0px 0 #ffffff, 0px 0 #ffffff;
+  /* ensure the orange cut appears above the frame but below letters */
+  position: relative;
+  z-index: 3;
+}
+
+.corner.plus {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Jersey 10', sans-serif;
+  background: #ffffff;
+  color: #212121;
+  z-index: 6;
+}
+.corner.plus { box-shadow: 6px 6px 0 #000; }
+.corner.plus.top-left { left: 80px; top: 80px; }
+.corner.plus.top-right { right: 80px; top: 80px; }
+.corner.plus.bottom-left { left: 140px; bottom: 120px; }
+.corner.plus.bottom-right { right: 140px; bottom: 120px; }
+
+.page-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  color: #212121;
+  font-family: 'Jersey 10', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10px;
   z-index: 5;
 }
+.page-footer a { color: #212121; text-decoration: none; margin-right: 18px; }
+.page-footer .center-note { text-align: center; font-size: 12px; }
+.page-footer .arrow { margin-top: 6px; }
 @media (max-width: 480px) {
   .word { font-size: 12px; }
   .center-name {
