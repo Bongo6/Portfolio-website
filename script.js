@@ -199,5 +199,10 @@ container.addEventListener('pointerleave', () => {
 });
 
 window.addEventListener('resize', initWords);
-initWords();
-requestAnimationFrame(animate);
+
+function initApp() {
+  initWords();
+  requestAnimationFrame(animate);
+}
+
+initApp();
