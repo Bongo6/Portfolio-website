@@ -35,9 +35,9 @@ body::before {
 
 .top-bar {
   position: absolute;
-  left: 40px;
-  right: 40px;
-  top: 40px;
+  left: 20px;
+  right: 20px;
+  top: 20px;
   height: 64px;
   background: #212121;
   z-index: 8;
