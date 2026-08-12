@@ -13,7 +13,10 @@
         <div id="top-words" class="top-words"></div>
       </div>
       <div class="title-frame" aria-hidden="true">
-        <div class="center-name">BONGO</div>
+        <div class="center-name" aria-label="Aaron van den Bossche">
+          <span class="name-line">AARON VAN DEN</span>
+          <span class="name-line">BOSSCHE</span>
+        </div>
       </div>
 
       <div class="corner plus top-left">+</div>
@@ -33,7 +36,8 @@
 
     <main class="page-main" id="works">
       <section class="scroll-section">
-        <div class="work-grid">
+        <button class="prev-tab" id="prev-tab" aria-label="Previous cards">‹</button>
+        <div class="work-grid" id="work-grid">
           <article class="work-card">
             <div class="work-number">1</div>
             <div class="work-title">Photography</div>
@@ -54,7 +58,13 @@
             <div class="work-title">Motion Design</div>
             <div class="work-detail">Brand animation and interface concepts.</div>
           </article>
+          <article class="work-card">
+            <div class="work-number">5</div>
+            <div class="work-title">Graphic Design</div>
+            <div class="work-detail">Visual identity and print systems.</div>
+          </article>
         </div>
+        <button class="next-tab" id="next-tab" aria-label="Next cards">next</button>
       </section>
     </main>
 

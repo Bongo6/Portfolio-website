@@ -96,14 +96,14 @@ body::before {
   top: 50%;
   transform: translate(-50%, -50%);
   background: #000000;
-  padding: clamp(32px, 4vw, 80px);
+  padding: clamp(22px, 2.5vw, 52px) clamp(18px, 2.8vw, 36px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 5;
   box-shadow: none;
-  width: min(92vw, 1200px);
-  max-width: 1200px;
+  width: min(76vw, 1080px);
+  max-width: 1080px;
 }
 
 .title-frame::after {
@@ -121,30 +121,33 @@ body::before {
 }
 
 .center-name {
-  font-size: clamp(140px, 16vw, 520px);
+  font-size: clamp(72px, 8vw, 258px);
   font-family: 'Jersey 25', 'Mardo', 'Syne', 'Genos', 'Segoe UI', sans-serif;
   font-weight: 000;
   text-transform: uppercase;
   color: #ffffff;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  white-space: nowrap;
-  display: block;
+  letter-spacing: -0.05em;
+  line-height: 0.72;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: none;
   text-rendering: geometricPrecision;
-  /* make edges crisper and blocky */
   -webkit-text-stroke: 0px transparent;
   filter: contrast(115%);
-  /* reinforce hard edges with multiple zero-offset shadows to avoid anti-aliasing */
-  /* use a tighter stepped shadow to create a pixel-block edge */
   text-shadow: 
     0px 0 #ffffff, 0px 0 #ffffff, 0 0px #ffffff, 0 -0px #ffffff,
     0px 0 #ffffff, 0px 0 #ffffff;
-  /* ensure the orange cut appears above the frame but below letters */
   position: relative;
   z-index: 3;
+}
+
+.name-line {
+  display: block;
+  white-space: nowrap;
 }
 
 .corner.plus {
@@ -185,7 +188,7 @@ body::before {
 
 .page-main {
   position: relative;
-  background: #111111;
+  background: #000000;
   color: #ffffff;
   padding: 120px 0 0;
   width: 100%;
@@ -195,6 +198,7 @@ body::before {
 }
 
 .scroll-section {
+  position: relative;
   width: 100%;
   max-width: none;
   margin: 0 auto;
@@ -228,27 +232,47 @@ body::before {
 }
 
 .work-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
+  display: flex;
+  gap: 0;
   align-items: stretch;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   height: 100%;
+  background: transparent;
+}
+.work-grid::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .work-card {
-  background: #f2f2f2;
+  background: #ffffff;
   color: #000;
   padding: 40px 28px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   min-height: 85vh;
+  text-align: center;
+  flex: 0 0 calc((100% - 3px) / 4);
+  max-width: calc((100% - 3px) / 4);
+  min-width: 320px;
+  scroll-snap-align: start;
+  border-left: 1px solid #000;
+  box-sizing: border-box;
+}
+
+.work-card:first-child {
+  border-left: none;
 }
 
 .work-number {
   font-family: 'Jersey 25', 'Montserrat', sans-serif;
-  font-size: 130px;
+  font-size: 280px;
   line-height: 0.9;
 }
 
@@ -264,12 +288,47 @@ body::before {
   opacity: 0.8;
 }
 
+.prev-tab,
+.next-tab {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 18px 24px;
+  font-family: 'Jersey 10', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.prev-tab {
+  left: 20px;
+}
+
+.next-tab {
+  right: 20px;
+}
+
+.next-tab:hover {
+  opacity: 0.9;
+}
+
 @media (max-width: 980px) {
   .work-grid {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
   }
   .work-card {
     min-height: 420px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex: none;
+    max-width: none;
+    min-width: auto;
   }
 }
 
@@ -278,7 +337,9 @@ body::before {
     padding: 80px 20px 60px;
   }
   .work-grid {
+    display: grid;
     grid-template-columns: 1fr;
+    overflow: visible;
   }
   .work-card {
     padding: 28px 20px;
