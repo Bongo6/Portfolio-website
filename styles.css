@@ -16,7 +16,7 @@ html, body {
   --ring-start-angle: -90deg;
   --ring-gap: 0deg;
   --ring-tilt: 0deg;
-  --ring-horizontal-shift: 0px;
+  --ring-horizontal-shift: -600px;
   --ring-vertical-shift: 270px;
 }
 
