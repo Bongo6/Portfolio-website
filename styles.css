@@ -22,6 +22,11 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='none'/%3E%3Crect x='9' y='0' width='2' height='20' fill='%23ff5a1f'/%3E%3Crect x='0' y='9' width='20' height='2' fill='%23ff5a1f'/%3E%3Crect x='9' y='9' width='2' height='2' fill='%23ff5a1f'/%3E%3C/svg%3E") 10 10, crosshair;
+}
+
+*, *::before, *::after {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='none'/%3E%3Crect x='9' y='0' width='2' height='20' fill='%23ff5a1f'/%3E%3Crect x='0' y='9' width='20' height='2' fill='%23ff5a1f'/%3E%3Crect x='9' y='9' width='2' height='2' fill='%23ff5a1f'/%3E%3C/svg%3E") 10 10, crosshair !important;
 }
 
 html, body, * {
@@ -92,7 +97,7 @@ html, body, * {
 }
 
 .portfolio-card {
-  --card-photo: linear-gradient(135deg, rgba(255,255,255,0.76), rgba(78,78,78,0.5));
+  --card-photo: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80');
   position: relative;
   background: #f3f3f3;
   border-left: 2px solid #000000;
@@ -108,6 +113,7 @@ html, body, * {
   overflow: hidden;
   scroll-snap-align: start;
   transition: transform 0.28s ease, box-shadow 0.28s ease;
+  cursor: pointer;
 }
 
 .portfolio-card::before {
@@ -119,7 +125,7 @@ html, body, * {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: grayscale(1) contrast(1.08) brightness(0.76);
+  filter: grayscale(1) contrast(1.1) brightness(0.72) saturate(0.7);
   transform: scale(1.06);
   transition: transform 0.35s ease, filter 0.35s ease, opacity 0.35s ease;
   opacity: 0.9;
