@@ -11,6 +11,11 @@ html, body {
   background: #050505;
 }
 
+:root {
+  --ring-radius: 300px;
+  --ring-start-angle: -90deg;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='none'/%3E%3Crect x='9' y='0' width='2' height='20' fill='%23ff5a1f'/%3E%3Crect x='0' y='9' width='20' height='2' fill='%23ff5a1f'/%3E%3Crect x='9' y='9' width='2' height='2' fill='%23ff5a1f'/%3E%3C/svg%3E") 10 10, crosshair !important;
@@ -172,26 +177,6 @@ html, body, * {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.portfolio-card:nth-child(1)  { --x: 0px; --y: -220px; z-index: 5; }
-.portfolio-card:nth-child(2)  { --x: 70px; --y: -205px; z-index: 4; }
-.portfolio-card:nth-child(3)  { --x: 130px; --y: -175px; z-index: 5; }
-.portfolio-card:nth-child(4)  { --x: 178px; --y: -130px; z-index: 4; }
-.portfolio-card:nth-child(5)  { --x: 208px; --y: -75px; z-index: 5; }
-.portfolio-card:nth-child(6)  { --x: 220px; --y: 0px; z-index: 4; }
-.portfolio-card:nth-child(7)  { --x: 208px; --y: 75px; z-index: 5; }
-.portfolio-card:nth-child(8)  { --x: 178px; --y: 130px; z-index: 4; }
-.portfolio-card:nth-child(9)  { --x: 130px; --y: 175px; z-index: 5; }
-.portfolio-card:nth-child(10) { --x: 70px; --y: 205px; z-index: 4; }
-.portfolio-card:nth-child(11) { --x: 0px; --y: 220px; z-index: 3; }
-.portfolio-card:nth-child(12) { --x: -70px; --y: 205px; z-index: 3; }
-.portfolio-card:nth-child(13) { --x: -130px; --y: 175px; z-index: 2; }
-.portfolio-card:nth-child(14) { --x: -178px; --y: 130px; z-index: 2; }
-.portfolio-card:nth-child(15) { --x: -208px; --y: 75px; z-index: 2; }
-.portfolio-card:nth-child(16) { --x: -220px; --y: 0px; z-index: 1; }
-.portfolio-card:nth-child(17) { --x: -208px; --y: -75px; z-index: 1; }
-.portfolio-card:nth-child(18) { --x: -178px; --y: -130px; z-index: 1; }
-.portfolio-card:nth-child(19) { --x: -130px; --y: -175px; z-index: 1; }
-.portfolio-card:nth-child(20) { --x: -70px; --y: -205px; z-index: 1; }
 
 @media (max-width: 980px) {
   .portfolio-nav {
