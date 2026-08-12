@@ -7,64 +7,37 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <header class="hero">
-      <div id="words-container" class="words-container"></div>
-      <div class="top-bar" aria-hidden="true">
-        <div id="top-words" class="top-words"></div>
-      </div>
-      <div class="title-frame" aria-hidden="true">
-        <div class="center-name" aria-label="Aaron van den Bossche">
-          <span class="name-line">AARON VAN DEN</span>
-          <span class="name-line">BOSSCHE</span>
-        </div>
+    <main class="portfolio-shell">
+      <div class="portfolio-nav" aria-label="Portfolio navigation">
+        <a href="#">Contact</a>
+        <a href="#">About</a>
+        <a href="#">Instagram</a>
       </div>
 
-      <div class="corner plus top-left">+</div>
-      <div class="corner plus top-right">+</div>
-      <div class="corner plus bottom-left">+</div>
-      <div class="corner plus bottom-right">+</div>
+      <section class="portfolio-grid" id="work-grid" aria-label="Portfolio work listing">
+        <article class="portfolio-card feature-card">
+          <div class="portfolio-number">1</div>
+          <div class="portfolio-title">photography</div>
+          <div class="portfolio-tag">"lorem ipsum"</div>
+        </article>
 
-      <footer class="page-footer" role="contentinfo">
-        <div class="left-links">
-          <a href="#">About</a>
-          <a href="#">Contact</a>
-        </div>
-        <div class="center-note">"selected works"<div class="arrow">↓</div></div>
-        <div class="right-link"><a href="#works">Instagram</a></div>
-      </footer>
-    </header>
+        <article class="portfolio-card">
+          <div class="portfolio-number">2</div>
+          <div class="portfolio-title">2D animation</div>
+          <div class="portfolio-tag">"lorem ipsum"</div>
+        </article>
 
-    <main class="page-main" id="works">
-      <section class="scroll-section">
-        <button class="prev-tab" id="prev-tab" aria-label="Previous cards">‹</button>
-        <div class="work-grid" id="work-grid">
-          <article class="work-card">
-            <div class="work-number">1</div>
-            <div class="work-title">Photography</div>
-            <div class="work-detail">Editorial and experimental imagery.</div>
-          </article>
-          <article class="work-card">
-            <div class="work-number">2</div>
-            <div class="work-title">3D Animation</div>
-            <div class="work-detail">Motion, character and interactive loops.</div>
-          </article>
-          <article class="work-card">
-            <div class="work-number">3</div>
-            <div class="work-title">Game Assets</div>
-            <div class="work-detail">Stylized environments and props.</div>
-          </article>
-          <article class="work-card">
-            <div class="work-number">4</div>
-            <div class="work-title">Motion Design</div>
-            <div class="work-detail">Brand animation and interface concepts.</div>
-          </article>
-          <article class="work-card">
-            <div class="work-number">5</div>
-            <div class="work-title">Graphic Design</div>
-            <div class="work-detail">Visual identity and print systems.</div>
-          </article>
-        </div>
-        <button class="next-tab" id="next-tab" aria-label="Next cards">next</button>
+        <article class="portfolio-card">
+          <div class="portfolio-number">3</div>
+          <div class="portfolio-title">game assets</div>
+          <div class="portfolio-tag">"lorem ipsum"</div>
+        </article>
+
+        <article class="portfolio-card">
+          <div class="portfolio-number">4</div>
+          <div class="portfolio-title">touchdesigner</div>
+          <div class="portfolio-tag">"lorem ipsum"</div>
+        </article>
       </section>
     </main>
 
