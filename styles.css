@@ -12,8 +12,12 @@ html, body {
 }
 
 :root {
-  --ring-radius: 300px;
+  --ring-radius: 435px;
   --ring-start-angle: -90deg;
+  --ring-gap: 0deg;
+  --ring-tilt: 0deg;
+  --ring-horizontal-shift: 0px;
+  --ring-vertical-shift: 270px;
 }
 
 *, *::before, *::after {
