@@ -24,12 +24,38 @@
     const tilt = ((parseFloat(rootStyles.getPropertyValue('--ring-tilt')) || 0) * Math.PI) / 180;
     const horizontalShift = parseFloat(rootStyles.getPropertyValue('--ring-horizontal-shift')) || 0;
     const verticalShift = parseFloat(rootStyles.getPropertyValue('--ring-vertical-shift')) || 0;
+    const gridRect = WORK_GRID.getBoundingClientRect();
     const step = (Math.PI * 2) / cards.length + ringGap;
+
+    // helper to parse unit values for center/shift vars
+    const parseLength = (str, ref) => {
+      if (!str) return NaN;
+      const s = String(str).trim();
+      if (s.endsWith('%')) return (parseFloat(s) / 100) * ref;
+      if (s.endsWith('vw')) return (parseFloat(s) / 100) * window.innerWidth;
+      if (s.endsWith('vh')) return (parseFloat(s) / 100) * window.innerHeight;
+      if (s.endsWith('px')) return parseFloat(s);
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : NaN;
+    };
+
+    // Allow specifying ring center inside the grid via CSS vars `--ring-center-x`/`--ring-center-y`.
+    // These default to 50% if not provided. If provided, they override the raw horizontal/vertical shifts.
+    const centerXVar = rootStyles.getPropertyValue('--ring-center-x') || '';
+    const centerYVar = rootStyles.getPropertyValue('--ring-center-y') || '';
+    const parsedCenterX = parseLength(centerXVar, gridRect.width);
+    const parsedCenterY = parseLength(centerYVar, gridRect.height);
+    const centerOffsetX = Number.isFinite(parsedCenterX)
+      ? parsedCenterX - gridRect.width / 2
+      : (parseLength(rootStyles.getPropertyValue('--ring-horizontal-shift'), gridRect.width) || horizontalShift);
+    const centerOffsetY = Number.isFinite(parsedCenterY)
+      ? parsedCenterY - gridRect.height / 2
+      : (parseLength(rootStyles.getPropertyValue('--ring-vertical-shift'), gridRect.height) || verticalShift);
 
     cards.forEach((card, index) => {
       const angle = startAngle + index * step + tilt + angleOffset;
-      const x = Math.cos(angle) * radius + horizontalShift;
-      const y = Math.sin(angle) * radius + verticalShift;
+      const x = Math.cos(angle) * radius + centerOffsetX;
+      const y = Math.sin(angle) * radius + centerOffsetY;
 
       card.style.setProperty('--x', `${x}px`);
       card.style.setProperty('--y', `${y}px`);

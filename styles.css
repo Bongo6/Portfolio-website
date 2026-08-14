@@ -17,8 +17,14 @@ html, body {
   --ring-gap: 0deg;
   --ring-tilt: 0deg;
   --ring-horizontal-shift: 0px;
-  --ring-vertical-shift: 300px;
+  --ring-vertical-shift: 1000px;
   --ring-rotation-duration: 60s;
+  /* center logo size (responsive). Change to px or vw as needed */
+  --ring-center-size: 8vw;
+  /* ring center position inside the grid. Use percent (recommended) or px/vw/vh.
+     Example: --ring-center-x: 50%; --ring-center-y: 50%; */
+  --ring-center-x: 50%;
+  --ring-center-y: 50%;
 }
 
 *, *::before, *::after {
@@ -88,6 +94,20 @@ html, body, * {
   display: none;
 }
 
+/* centered logo in the middle of the ring */
+.ring-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--ring-center-size);
+  height: auto;
+  max-width: 160px;
+  min-width: 40px;
+  z-index: 100;
+  pointer-events: none;
+}
+
 /* rotate the whole grid; cards' inner content will counter-rotate to stay upright */
 .portfolio-grid {
   transform-origin: 50% 50%;
@@ -108,7 +128,7 @@ html, body, * {
 }
 
 .portfolio-card {
-  --card-photo: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(130,130,130,0.75));
+  --card-photo: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255, 153, 0, 0.75));
   --x: 0px;
   --y: 0px;
   --rot: 0deg;
@@ -156,8 +176,8 @@ html, body, * {
 }
 
 .portfolio-card:hover {
-  transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot)) translateY(-10px) scale(1.02);
-  box-shadow: 0 26px 40px rgba(0, 0, 0, 0.3);
+  transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot)) translateY(-50px) scale(1.25);
+  box-shadow: 0 46px 80px rgba(0, 0, 0, 2.0);
 }
 
 .portfolio-number {
