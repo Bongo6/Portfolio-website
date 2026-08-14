@@ -16,8 +16,9 @@ html, body {
   --ring-start-angle: -90deg;
   --ring-gap: 0deg;
   --ring-tilt: 0deg;
-  --ring-horizontal-shift: -600px;
-  --ring-vertical-shift: 270px;
+  --ring-horizontal-shift: 0px;
+  --ring-vertical-shift: 300px;
+  --ring-rotation-duration: 60s;
 }
 
 *, *::before, *::after {
@@ -83,16 +84,27 @@ html, body, * {
 }
 
 .portfolio-grid::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 52%;
-  width: 220px;
-  height: 220px;
-  border-radius: 48% 52% 51% 49% / 49% 51% 49% 51%;
-  background: rgba(0, 0, 0, 0.88);
-  transform: translate(-50%, -50%);
-  z-index: 0;
+  /* center circle hidden */
+  display: none;
+}
+
+/* rotate the whole grid; cards' inner content will counter-rotate to stay upright */
+.portfolio-grid {
+  transform-origin: 50% 50%;
+}
+
+/* inner wrapper used to group card content; no animation here —
+   rotation is driven by JS so cards stay visually upright. */
+.card-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  transform-style: preserve-3d;
 }
 
 .portfolio-card {
