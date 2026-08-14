@@ -49,9 +49,14 @@ html, body, * {
 .portfolio-shell {
   width: 100vw;
   height: 100vh;
-  background: #050505;
+  background: rgb(255, 90, 31);
   position: relative;
   overflow: hidden;
+
+  /* Add these lines to perfectly center content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .portfolio-nav {
@@ -62,7 +67,7 @@ html, body, * {
   width: min(42vw, 560px);
   min-width: 300px;
   height: 52px;
-  background: #ff5a1f;
+  background: rgb(255, 90, 31);
   border: 3px solid #000000;
   border-radius: 999px;
   display: flex;
@@ -84,7 +89,7 @@ html, body, * {
   position: relative;
   width: min(820px, 68vw);
   height: min(540px, 62vh);
-  margin: 110px auto 0;
+  margin: 0; /* Changed from 110px auto 0 */
   perspective: 1400px;
   transform-style: preserve-3d;
 }
