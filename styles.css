@@ -12,6 +12,7 @@ html, body {
 }
 
 :root {
+  --color-accent: rgb(0, 0, 255);
   --ring-radius: 435px;
   --ring-start-angle: -90deg;
   --ring-gap: 0deg;
@@ -142,8 +143,8 @@ html, body, * {
   width: 200px;
   height: 240px;
   background: #f1f1f1;
-  border: 2px solid #000000;
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0);
+  border: 2px solid rgb(0, 0, 0)
+  box-shadow: 0 0px 3px rgba(var(--color-accent), 1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -156,7 +157,7 @@ html, body, * {
 }
 
 .portfolio-card.is-active {
-  box-shadow: 0 0 0 4px rgb(255, 90, 31);
+  box-shadow: 0 0 0 3px var(--color-accent);
 }
 
 /* fallback background shown before/without media in a card's folder */
@@ -204,7 +205,7 @@ html, body, * {
 
 .portfolio-card:hover {
   transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot)) translateY(-50px) scale(1.25);
-  box-shadow: 0 46px 80px rgba(0, 0, 0, 2.0);
+  box-shadow: 0 0 0 4px var(--color-accent);
 }
 
 .portfolio-number {
@@ -280,8 +281,8 @@ html, body, * {
 }
 
 .work-detail-close:hover {
-  background: rgb(255, 90, 31);
-  border-color: rgb(255, 90, 31);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .work-detail-title {
