@@ -18,7 +18,7 @@ html, body {
   --ring-tilt: 0deg;
   --ring-horizontal-shift: 0px;
   --ring-vertical-shift: 1000px;
-  --ring-rotation-duration: 60s;
+  --ring-rotation-duration: 120s;
   /* center logo size (responsive). Change to px or vw as needed */
   --ring-center-size: 8vw;
   /* ring center position inside the grid. Use percent (recommended) or px/vw/vh.
@@ -49,7 +49,7 @@ html, body, * {
 .portfolio-shell {
   width: 100vw;
   height: 100vh;
-  background: rgb(12, 12, 12);
+  background: rgb(34, 34, 34)
   position: relative;
   overflow: hidden;
   display: flex;
@@ -65,7 +65,7 @@ html, body, * {
   width: min(42vw, 560px);
   min-width: 300px;
   height: 52px;
-  background: rgb(255, 90, 31);
+  background: rgb(255, 90, 31, 0);
   border: 3px solid #000000;
   border-radius: 999px;
   display: flex;
@@ -91,6 +91,12 @@ html, body, * {
   perspective: 1400px;
   transform-style: preserve-3d;
   transform-origin: 50% 50%;
+  transition: transform 0.5s ease;
+}
+
+/* ring shifts left to make room for the open detail panel */
+.portfolio-shell.detail-open .portfolio-grid {
+  transform: translateX(-160px);
 }
 
 .portfolio-grid::before {
@@ -137,7 +143,7 @@ html, body, * {
   height: 240px;
   background: #f1f1f1;
   border: 2px solid #000000;
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -149,12 +155,16 @@ html, body, * {
   transition: transform 0.24s ease, box-shadow 0.24s ease, filter 0.24s ease;
 }
 
+.portfolio-card.is-active {
+  box-shadow: 0 0 0 4px rgb(255, 90, 31);
+}
+
 /* fallback background shown before/without media in a card's folder */
 .portfolio-card::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0.75));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0), rgba(255, 153, 0, 0));
   z-index: 0;
 }
 
@@ -163,7 +173,7 @@ html, body, * {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0);
   z-index: 2;
 }
 
@@ -184,7 +194,7 @@ html, body, * {
   object-fit: cover;
   opacity: 0;
   transition: opacity 0.6s ease;
-  filter: grayscale(0.0) contrast(1.0) brightness(1.0);
+  filter: grayscale(0.25) contrast(1) brightness(1);
 }
 
 .card-media img.active,
@@ -230,6 +240,96 @@ html, body, * {
   background: rgba(255, 255, 255, 0.2);
 }
 
+
+/* -----------------------------------------------------------
+   Work detail panel (slides in from the right on card click)
+   ----------------------------------------------------------- */
+.work-detail {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(460px, 42vw);
+  height: 100vh;
+  background: #0c0c0c;
+  border-left: 3px solid #000;
+  transform: translateX(100%);
+  transition: transform 0.5s ease;
+  z-index: 60;
+  overflow-y: auto;
+  padding: 72px 40px 40px;
+  box-sizing: border-box;
+}
+
+.work-detail.open {
+  transform: translateX(0);
+}
+
+.work-detail-close {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.work-detail-close:hover {
+  background: rgb(255, 90, 31);
+  border-color: rgb(255, 90, 31);
+}
+
+.work-detail-title {
+  font-family: 'Jersey 25', sans-serif;
+  font-size: 44px;
+  line-height: 1;
+  color: #ffffff;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.work-detail-tag {
+  display: inline-block;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 14px;
+  color: #ffffff;
+  margin-bottom: 24px;
+}
+
+.work-detail-tag:empty {
+  display: none;
+}
+
+.work-detail-description {
+  font-family: 'Genos', sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  color: #dddddd;
+  white-space: pre-line;
+  margin: 0 0 32px;
+}
+
+.work-detail-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.work-detail-gallery img,
+.work-detail-gallery video {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border: 2px solid #000000;
+}
 
 @media (max-width: 980px) {
   .portfolio-nav {
@@ -290,5 +390,18 @@ html, body, * {
   .portfolio-tag {
     font-size: 12px;
     padding: 4px 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .work-detail {
+    width: 100%;
+    padding: 64px 24px 32px;
+  }
+
+  .portfolio-shell.detail-open .portfolio-grid {
+    transform: translateX(-40vw);
+    opacity: 0.15;
+    pointer-events: none;
   }
 }

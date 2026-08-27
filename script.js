@@ -129,9 +129,103 @@
 
     discoverMedia(folder).then((items) => {
       if (!items.length) return; // no files found in this card's folder yet
+      card._mediaItems = items; // stashed for reuse in the detail panel gallery
       const elements = buildMediaLayer(card, items);
       startCycle(elements, i * CARD_STAGGER_MS);
     });
+  });
+
+  // ---------------------------------------------------------------
+  // Work detail panel — click a card to open it, ring shifts left.
+  // Title/tag come from the card's own text; description comes from
+  // content.json (edit that one file to fill in write-ups); gallery
+  // reuses the media already discovered for that card above.
+  // ---------------------------------------------------------------
+  const shell = document.querySelector('.portfolio-shell');
+  const detailPanel = document.getElementById('work-detail');
+  const detailTitle = document.getElementById('work-detail-title');
+  const detailTag = document.getElementById('work-detail-tag');
+  const detailDescription = document.getElementById('work-detail-description');
+  const detailGallery = document.getElementById('work-detail-gallery');
+  const detailClose = document.getElementById('work-detail-close');
+
+  let descriptions = {};
+  fetch('content.json', { cache: 'no-store' })
+    .then((res) => (res.ok ? res.json() : {}))
+    .then((data) => { descriptions = data; })
+    .catch(() => {}); // fine if content.json doesn't exist yet
+
+  let activeCard = null;
+
+  const buildGalleryItem = (item) => {
+    let el;
+    if (item.type === 'video') {
+      el = document.createElement('video');
+      el.src = item.src;
+      el.muted = true;
+      el.loop = true;
+      el.autoplay = true;
+      el.playsInline = true;
+    } else {
+      el = document.createElement('img');
+      el.src = item.src;
+      el.alt = '';
+    }
+    return el;
+  };
+
+  const openDetail = (card) => {
+    if (activeCard) activeCard.classList.remove('is-active');
+    activeCard = card;
+    card.classList.add('is-active');
+    rotationPaused = true;
+
+    const number = (card.dataset.media || '').split('/').pop();
+    const title = card.querySelector('.portfolio-title')?.textContent.trim() || '';
+    const tag = card.querySelector('.portfolio-tag')?.textContent.trim() || '';
+    const description = descriptions[number] || '';
+    const items = card._mediaItems || [];
+
+    detailTitle.textContent = title;
+    detailTag.textContent = tag;
+    detailDescription.textContent = description || 'Description coming soon.';
+
+    detailGallery.innerHTML = '';
+    items.forEach((item) => detailGallery.appendChild(buildGalleryItem(item)));
+
+    shell.classList.add('detail-open');
+    detailPanel.classList.add('open');
+    detailPanel.setAttribute('aria-hidden', 'false');
+  };
+
+  const closeDetail = () => {
+    if (activeCard) activeCard.classList.remove('is-active');
+    activeCard = null;
+    rotationPaused = false;
+    shell.classList.remove('detail-open');
+    detailPanel.classList.remove('open');
+    detailPanel.setAttribute('aria-hidden', 'true');
+  };
+
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      if (activeCard === card) {
+        closeDetail();
+      } else {
+        openDetail(card);
+      }
+    });
+  });
+
+  detailClose.addEventListener('click', closeDetail);
+  detailPanel.addEventListener('click', (e) => e.stopPropagation());
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDetail();
+  });
+
+  shell.addEventListener('click', (e) => {
+    if (activeCard && e.target === shell) closeDetail();
   });
 
   // ---------------------------------------------------------------
@@ -183,6 +277,7 @@
 
   let angleOffset = 0;
   let last = performance.now();
+  let rotationPaused = false;
 
   const parseDuration = (s) => {
     if (!s) return 60;
@@ -198,8 +293,10 @@
   const tick = (now) => {
     const dt = (now - last) / 1000;
     last = now;
-    angleOffset += (dt * 2 * Math.PI) / Math.max(duration, 0.001);
-    applyCircularLayout(angleOffset);
+    if (!rotationPaused) {
+      angleOffset += (dt * 2 * Math.PI) / Math.max(duration, 0.001);
+      applyCircularLayout(angleOffset);
+    }
     requestAnimationFrame(tick);
   };
 
