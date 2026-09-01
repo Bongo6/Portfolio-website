@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   const WORK_GRID = document.getElementById('work-grid');
 
   if (!WORK_GRID) return;
@@ -19,12 +19,26 @@
   });
 
   // ---------------------------------------------------------------
-  // Per-card media (images/video) — auto-discovery + slideshow cycle
+  // Per-card media (images/video) — manifest-driven, gap-tolerant.
+  //
+  // A tiny compressed preview (always a static JPEG, even for videos)
+  // cycles on the grid card. Full-resolution originals are only ever
+  // fetched when that specific card's detail panel is opened, so the
+  // page never has to load every photo/video for every card at once.
+  //
+  // media/<NN>/manifest.json lists exactly which numbered files exist
+  // in that folder (and their preview path) — regenerate it whenever
+  // media is added to or removed from a folder. If a folder has no
+  // manifest yet, we fall back to probing 1.<ext>, 2.<ext>, ... which
+  // (unlike the old version) no longer stops at the first missing
+  // number, so folders with gaps in their numbering still show
+  // everything that's actually there.
   // ---------------------------------------------------------------
   const MEDIA_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'webm'];
-  const VIDEO_EXTENSIONS = ['mp4', 'webm'];
+  const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov'];
   const CYCLE_INTERVAL_MS = 3500;
   const CARD_STAGGER_MS = 220;
+  const MAX_INDEX_SCAN = 80; // fallback only, used when manifest.json is missing
 
   const fileExists = async (path) => {
     try {
@@ -35,34 +49,67 @@
     }
   };
 
-  // Tries 1.<ext>, 2.<ext>, ... in `folder`, stopping at the first missing
-  // number. For each number it tries every extension in MEDIA_EXTENSIONS
-  // until one exists, so you can freely mix jpg/png/mp4/etc.
-  const discoverMedia = async (folder) => {
-    const items = [];
-    let index = 1;
+  const loadManifest = async (folder) => {
+    try {
+      const res = await fetch(`${folder}/manifest.json`, { cache: 'no-store' });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return Array.isArray(data) ? data : null;
+    } catch (err) {
+      return null;
+    }
+  };
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+  // Fallback discovery for a folder with no manifest.json: probes every
+  // number up to MAX_INDEX_SCAN and keeps whatever it finds, gaps included.
+  const discoverMediaFallback = async (folder) => {
+    const items = [];
+    for (let index = 1; index <= MAX_INDEX_SCAN; index += 1) {
       let matchedExt = null;
       for (const ext of MEDIA_EXTENSIONS) {
-        const path = `${folder}/${index}.${ext}`;
         // eslint-disable-next-line no-await-in-loop
-        if (await fileExists(path)) {
+        if (await fileExists(`${folder}/${index}.${ext}`)) {
           matchedExt = ext;
           break;
         }
       }
-      if (!matchedExt) break;
-
+      if (!matchedExt) continue;
       items.push({
+        index,
         src: `${folder}/${index}.${matchedExt}`,
         type: VIDEO_EXTENSIONS.includes(matchedExt) ? 'video' : 'image',
       });
-      index += 1;
     }
-
     return items;
+  };
+
+  // Full-resolution items for a folder — used only by the detail-panel
+  // gallery, fetched on demand rather than up front for every card.
+  const discoverFullMedia = async (folder) => {
+    const manifest = await loadManifest(folder);
+    if (manifest) {
+      return manifest.map((m) => ({
+        index: m.index,
+        src: `${folder}/${m.src}`,
+        type: m.type,
+      }));
+    }
+    return discoverMediaFallback(folder);
+  };
+
+  // Lightweight preview items for the grid cards — always static images
+  // (a representative frame stands in for video), so a card never has to
+  // decode a multi-megabyte photo or buffer a video just to sit in the ring.
+  const discoverPreviewMedia = async (folder) => {
+    const manifest = await loadManifest(folder);
+    if (manifest) {
+      return manifest
+        .filter((m) => m.preview)
+        .map((m) => ({ index: m.index, src: `${folder}/${m.preview}`, type: 'image' }));
+    }
+    // No manifest and no preview files to point to — fall back to the
+    // real media so the grid isn't empty (heavier, but better than blank).
+    return discoverMediaFallback(folder);
   };
 
   const buildMediaLayer = (card, items) => {
@@ -127,9 +174,10 @@
     const folder = card.dataset.media;
     if (!folder) return;
 
-    discoverMedia(folder).then((items) => {
+    // Grid view: cheap previews only. Full-res media is fetched lazily the
+    // first time this card's detail panel is opened (see openDetail below).
+    discoverPreviewMedia(folder).then((items) => {
       if (!items.length) return; // no files found in this card's folder yet
-      card._mediaItems = items; // stashed for reuse in the detail panel gallery
       const elements = buildMediaLayer(card, items);
       startCycle(elements, i * CARD_STAGGER_MS);
     });
@@ -138,8 +186,9 @@
   // ---------------------------------------------------------------
   // Work detail panel — click a card to open it, ring shifts left.
   // Title/tag come from the card's own text; description comes from
-  // content.json (edit that one file to fill in write-ups); gallery
-  // reuses the media already discovered for that card above.
+  // content.json (edit that one file to fill in write-ups); the gallery
+  // loads full-resolution media on demand the first time a card opens,
+  // then caches it on the card so reopening doesn't re-fetch it.
   // ---------------------------------------------------------------
   const shell = document.querySelector('.portfolio-shell');
   const detailPanel = document.getElementById('work-detail');
@@ -174,28 +223,37 @@
     return el;
   };
 
-  const openDetail = (card) => {
+  const openDetail = async (card) => {
     if (activeCard) activeCard.classList.remove('is-active');
     activeCard = card;
     card.classList.add('is-active');
     rotationPaused = true;
 
-    const number = (card.dataset.media || '').split('/').pop();
+    const folder = card.dataset.media;
+    const number = (folder || '').split('/').pop();
     const title = card.querySelector('.portfolio-title')?.textContent.trim() || '';
     const tag = card.querySelector('.portfolio-tag')?.textContent.trim() || '';
     const description = descriptions[number] || '';
-    const items = card._mediaItems || [];
 
     detailTitle.textContent = title;
     detailTag.textContent = tag;
     detailDescription.textContent = description || 'Description coming soon.';
 
     detailGallery.innerHTML = '';
-    items.forEach((item) => detailGallery.appendChild(buildGalleryItem(item)));
-
     shell.classList.add('detail-open');
     detailPanel.classList.add('open');
     detailPanel.setAttribute('aria-hidden', 'false');
+
+    // Full-res media loads only now, on demand — not for every card up front.
+    if (!card._mediaItems) {
+      card._mediaItems = await discoverFullMedia(folder);
+    }
+
+    // The user may have closed the panel or clicked another card while the
+    // full-res media was still loading — don't populate a stale gallery.
+    if (activeCard !== card) return;
+
+    card._mediaItems.forEach((item) => detailGallery.appendChild(buildGalleryItem(item)));
   };
 
   const closeDetail = () => {

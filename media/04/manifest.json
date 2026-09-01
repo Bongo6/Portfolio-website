@@ -1,0 +1,38 @@
+[
+  {
+    "index": 1,
+    "src": "1.png",
+    "type": "image",
+    "preview": "1.preview.jpg"
+  },
+  {
+    "index": 2,
+    "src": "2.png",
+    "type": "image",
+    "preview": "2.preview.jpg"
+  },
+  {
+    "index": 3,
+    "src": "3.png",
+    "type": "image",
+    "preview": "3.preview.jpg"
+  },
+  {
+    "index": 4,
+    "src": "4.png",
+    "type": "image",
+    "preview": "4.preview.jpg"
+  },
+  {
+    "index": 5,
+    "src": "5.mov",
+    "type": "video",
+    "preview": "5.preview.jpg"
+  },
+  {
+    "index": 6,
+    "src": "6.png",
+    "type": "image",
+    "preview": "6.preview.jpg"
+  }
+]
