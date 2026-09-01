@@ -28,6 +28,19 @@ html, body {
   --ring-center-y: 50%;
 }
 
+/* visually hidden but still readable by screen readers and search engines */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='none'/%3E%3Crect x='9' y='0' width='2' height='20' fill='%23ff5a1f'/%3E%3Crect x='0' y='9' width='20' height='2' fill='%23ff5a1f'/%3E%3Crect x='9' y='9' width='2' height='2' fill='%23ff5a1f'/%3E%3C/svg%3E") 10 10, crosshair !important;
@@ -67,7 +80,7 @@ html, body, * {
   min-width: 300px;
   height: 52px;
   background: rgb(255, 90, 31, 0);
-  border: 1px solid #000000;
+  border: 0px solid #000000;
   border-radius: 999px;
   display: flex;
   align-items: center;
@@ -151,7 +164,7 @@ html, body, * {
   justify-content: center;
   padding: 18px 14px 16px;
   overflow: hidden;
-  transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot));
+  transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot)) scale(var(--card-scale, 1));
   transform-style: preserve-3d;
   transition: transform 0.24s ease, box-shadow 0.24s ease, filter 0.24s ease;
 }
@@ -204,7 +217,7 @@ html, body, * {
 }
 
 .portfolio-card:hover {
-  transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot)) translateY(-50px) scale(1.25);
+  transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot)) translateY(-50px) scale(1.25) scale(var(--card-scale, 1));
   box-shadow: 0 0 0 2px var(--color-accent);
 }
 
@@ -243,7 +256,8 @@ html, body, * {
 
 
 /* -----------------------------------------------------------
-   Work detail panel (slides in from the right on card click)
+   Work detail panel (revealed by the card-flip overlay — no
+   slide-in of its own, it's just already in place underneath)
    ----------------------------------------------------------- */
 .work-detail {
   position: fixed;
@@ -254,7 +268,7 @@ html, body, * {
   background: #0c0c0c;
   border-left: 3px solid #000;
   transform: translateX(100%);
-  transition: transform 0.5s ease;
+  transition: none;
   z-index: 60;
   overflow-y: auto;
   padding: 72px 40px 40px;
@@ -318,20 +332,127 @@ html, body, * {
   margin: 0 0 32px;
 }
 
+/* Justified-style gallery: every item keeps its own natural aspect ratio
+   (no cropping) and they wrap left-to-right in rows of a fixed height. */
 .work-detail-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 18px;
   width: 100%;
 }
 
-.work-detail-gallery img,
-.work-detail-gallery video {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+.gallery-item {
+  position: relative;
+  height: 340px;
+  width: 220px; /* default box until the real file's size is known */
+  line-height: 0; /* avoid extra gap under the inline media element */
+  background: #000;
   border: 2px solid #000000;
+  overflow: hidden;
+  transition: width 0.25s ease;
+}
+
+.gallery-item.is-loaded {
+  width: auto;
+}
+
+/* A gallery with only one photo/video fills the panel big — no other
+   items to line it up next to, so no reason to keep it in the small box. */
+.gallery-item.solo,
+.gallery-item.solo.is-loaded {
+  width: 100%;
+  height: min(70vh, 720px);
+}
+
+.gallery-item.solo .gallery-item-media {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gallery-item-placeholder {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 42%;
+  height: 42%;
+  object-fit: contain;
+  opacity: 0.4;
+  animation: gallery-placeholder-pulse 1.4s ease-in-out infinite;
+}
+
+.gallery-item.is-loaded .gallery-item-placeholder {
+  opacity: 0;
+  animation: none;
+  pointer-events: none;
+}
+
+@keyframes gallery-placeholder-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.55; }
+}
+
+.gallery-item-media {
+  position: relative;
+  height: 340px;
+  width: auto;
+  max-width: none;
+  display: block;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-item.is-loaded .gallery-item-media {
+  opacity: 1;
+}
+
+/* Hover bar: fullscreen button on every item, play/pause on videos too. */
+.gallery-item-controls {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.gallery-item:hover .gallery-item-controls,
+.gallery-item:focus-within .gallery-item-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.gallery-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.gallery-btn:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.gallery-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 @media (max-width: 980px) {
@@ -408,4 +529,77 @@ html, body, * {
     opacity: 0.15;
     pointer-events: none;
   }
+}
+
+@media (max-width: 980px) {
+  .gallery-item,
+  .gallery-item-media {
+    height: 220px;
+  }
+
+  .gallery-item {
+    width: 160px;
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery-item,
+  .gallery-item-media {
+    height: 160px;
+  }
+
+  .gallery-item {
+    width: 120px;
+  }
+}
+
+/* -----------------------------------------------------------
+   Card-flip transition: a full-card clone flips over and grows
+   to cover the screen when a card is opened, then fades out to
+   reveal the work-detail panel already in place underneath.
+   ----------------------------------------------------------- */
+.card-flip-overlay {
+  position: fixed;
+  z-index: 200;
+  perspective: 1400px;
+  pointer-events: none;
+  transition: top 0.5s cubic-bezier(0.6, 0.05, 0.28, 0.98),
+              left 0.5s cubic-bezier(0.6, 0.05, 0.28, 0.98),
+              width 0.5s cubic-bezier(0.6, 0.05, 0.28, 0.98),
+              height 0.5s cubic-bezier(0.6, 0.05, 0.28, 0.98),
+              opacity 0.25s ease;
+}
+
+.card-flip-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.6, 0.05, 0.28, 0.98);
+}
+
+.card-flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  overflow: hidden;
+  border: 2px solid #000;
+  background-color: rgb(24, 24, 24);
+  background-size: cover;
+  background-position: center;
+}
+
+.card-flip-face.back {
+  background-color: #0c0c0c;
+  transform: rotateY(180deg);
+}
+
+/* Mirrors .work-detail's own padding/box model so the text lines up
+   exactly with the real panel underneath once the overlay is removed. */
+.card-flip-back-inner {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 72px 40px 40px;
+  overflow: hidden;
 }

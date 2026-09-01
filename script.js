@@ -206,63 +206,331 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let activeCard = null;
 
-  const buildGalleryItem = (item) => {
-    let el;
-    if (item.type === 'video') {
-      el = document.createElement('video');
-      el.src = item.src;
-      el.muted = true;
-      el.loop = true;
-      el.autoplay = true;
-      el.playsInline = true;
-    } else {
-      el = document.createElement('img');
-      el.src = item.src;
-      el.alt = '';
-    }
-    return el;
-  };
+  const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
 
-  const openDetail = async (card) => {
-    if (activeCard) activeCard.classList.remove('is-active');
-    activeCard = card;
-    card.classList.add('is-active');
-    rotationPaused = true;
-
+  // Title/tag/description for a card — read synchronously from its own DOM
+  // text and the already-loaded content.json. Shared by the flip's back
+  // face and the real detail panel so both show identical content.
+  const getCardMeta = (card) => {
     const folder = card.dataset.media;
     const number = (folder || '').split('/').pop();
     const title = card.querySelector('.portfolio-title')?.textContent.trim() || '';
     const tag = card.querySelector('.portfolio-tag')?.textContent.trim() || '';
     const description = descriptions[number] || '';
+    return { folder, title, tag, description };
+  };
+
+  // ---------------------------------------------------------------
+  // Card-flip transition: the card's current look flips over in 3D
+  // and grows to cover the screen — and its back face shows the
+  // *real* title/tag/description (not a placeholder), styled and
+  // positioned exactly like the real detail panel underneath. So
+  // when the overlay is removed at the end, nothing pops or snaps —
+  // the back of the card already looked like the description page.
+  // ---------------------------------------------------------------
+  const playCardFlip = (card, meta) => {
+    const rect = card.getBoundingClientRect();
+    const activeMedia = card.querySelector('.card-media img.active');
+    const cardBg = getComputedStyle(card).backgroundColor;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'card-flip-overlay';
+    overlay.style.top = `${rect.top}px`;
+    overlay.style.left = `${rect.left}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.height = `${rect.height}px`;
+
+    const inner = document.createElement('div');
+    inner.className = 'card-flip-inner';
+
+    const front = document.createElement('div');
+    front.className = 'card-flip-face front';
+    front.style.backgroundColor = cardBg;
+    if (activeMedia) front.style.backgroundImage = `url("${activeMedia.src}")`;
+
+    const back = document.createElement('div');
+    back.className = 'card-flip-face back';
+    back.innerHTML = `
+      <div class="card-flip-back-inner">
+        <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
+        ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
+        <p class="work-detail-description">${escapeHtml(meta.description || 'Description coming soon.')}</p>
+      </div>
+    `;
+
+    inner.appendChild(front);
+    inner.appendChild(back);
+    overlay.appendChild(inner);
+    document.body.appendChild(overlay);
+
+    // Force layout so the starting position/size is committed before we
+    // animate to the expanded, flipped state on the next frame.
+    // eslint-disable-next-line no-unused-expressions
+    overlay.getBoundingClientRect();
+
+    // Resolves once the overlay has fully expanded and flipped — i.e. the
+    // moment the screen is completely covered by the (already correct-
+    // looking) back face. Callers should wait for this before revealing
+    // anything underneath, so nothing shows through mid-flip.
+    const covered = new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        overlay.style.top = '0px';
+        overlay.style.left = '0px';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        inner.style.transform = 'rotateY(180deg)';
+        setTimeout(resolve, 520);
+      });
+    });
+
+    // Hold fully covered for a beat (letting whatever's underneath finish
+    // settling into place while hidden), then fade the overlay away.
+    covered.then(() => {
+      setTimeout(() => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 220);
+      }, 80);
+    });
+
+    return covered;
+  };
+
+  // ---------------------------------------------------------------
+  // Reverse card-flip: the mirror image of playCardFlip. Starts as a
+  // full-screen overlay showing the *same* title/tag/description as
+  // the real panel (so swapping it in for the real panel is invisible),
+  // then shrinks and flips back down into the card's own spot in the
+  // grid, ending on the card's normal look. Returns a promise that
+  // resolves once the overlay is gone and the card is fully revealed.
+  // ---------------------------------------------------------------
+  const playCardFlipReverse = (card, meta) => {
+    const activeMedia = card.querySelector('.card-media img.active');
+    const cardBg = getComputedStyle(card).backgroundColor;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'card-flip-overlay';
+    overlay.style.top = '0px';
+    overlay.style.left = '0px';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+
+    const inner = document.createElement('div');
+    inner.className = 'card-flip-inner';
+    inner.style.transform = 'rotateY(180deg)'; // starts on the back (description) face
+
+    const front = document.createElement('div');
+    front.className = 'card-flip-face front';
+    front.style.backgroundColor = cardBg;
+    if (activeMedia) front.style.backgroundImage = `url("${activeMedia.src}")`;
+
+    const back = document.createElement('div');
+    back.className = 'card-flip-face back';
+    back.innerHTML = `
+      <div class="card-flip-back-inner">
+        <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
+        ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
+        <p class="work-detail-description">${escapeHtml(meta.description || 'Description coming soon.')}</p>
+      </div>
+    `;
+
+    inner.appendChild(front);
+    inner.appendChild(back);
+    overlay.appendChild(inner);
+    document.body.appendChild(overlay);
+
+    // Committed while the overlay still exactly matches the real panel
+    // (full-screen, back face forward) — so hiding the real panel and
+    // un-shifting the grid right now is completely invisible.
+    // eslint-disable-next-line no-unused-expressions
+    overlay.getBoundingClientRect();
+    shell.classList.remove('detail-open');
+    detailPanel.classList.remove('open');
+    detailPanel.setAttribute('aria-hidden', 'true');
+
+    // While detail-open, the grid is shifted way off (and faded) via CSS —
+    // jump that shift off immediately (still hidden behind the overlay) so
+    // we can measure the card's real resting position, not its shifted-
+    // and-faded detail-open position.
+    const prevGridTransition = WORK_GRID.style.transition;
+    WORK_GRID.style.transition = 'none';
+    // eslint-disable-next-line no-unused-expressions
+    WORK_GRID.getBoundingClientRect(); // force the un-shift to apply now
+    const rect = card.getBoundingClientRect();
+    // eslint-disable-next-line no-unused-expressions
+    WORK_GRID.offsetHeight; // force layout before restoring the transition
+    WORK_GRID.style.transition = prevGridTransition;
+
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        overlay.style.top = `${rect.top}px`;
+        overlay.style.left = `${rect.left}px`;
+        overlay.style.width = `${rect.width}px`;
+        overlay.style.height = `${rect.height}px`;
+        inner.style.transform = 'rotateY(0deg)';
+      });
+
+      setTimeout(() => {
+        overlay.remove();
+        resolve();
+      }, 560);
+    });
+  };
+
+  // ---------------------------------------------------------------
+  // Gallery item hover controls: a fullscreen button on every item,
+  // plus a play/pause button on videos.
+  // ---------------------------------------------------------------
+  const FULLSCREEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg>';
+  const PLAY_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+
+  const requestFullscreenOn = (el) => {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) req.call(el);
+  };
+
+  const buildGalleryItem = (item) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'gallery-item';
+
+    // Full-res photos/videos can be tens of megabytes — until this item's
+    // file has actually finished downloading, show the site logo in its
+    // place so the gallery isn't just empty space while it loads.
+    const placeholder = document.createElement('img');
+    placeholder.className = 'gallery-item-placeholder';
+    placeholder.src = 'logo.png';
+    placeholder.alt = '';
+    wrap.appendChild(placeholder);
+
+    const markLoaded = () => wrap.classList.add('is-loaded');
+
+    let el;
+    if (item.type === 'video') {
+      el = document.createElement('video');
+      el.className = 'gallery-item-media';
+      el.src = item.src;
+      el.muted = true;
+      el.loop = true;
+      el.autoplay = true;
+      el.playsInline = true;
+      el.addEventListener('loadeddata', markLoaded, { once: true });
+      el.addEventListener('error', markLoaded, { once: true });
+    } else {
+      el = document.createElement('img');
+      el.className = 'gallery-item-media';
+      el.src = item.src;
+      el.alt = '';
+      el.addEventListener('load', markLoaded, { once: true });
+      el.addEventListener('error', markLoaded, { once: true });
+      if (el.complete && el.naturalWidth) markLoaded(); // already cached
+    }
+    wrap.appendChild(el);
+
+    const controls = document.createElement('div');
+    controls.className = 'gallery-item-controls';
+
+    if (item.type === 'video') {
+      const playPauseBtn = document.createElement('button');
+      playPauseBtn.type = 'button';
+      playPauseBtn.className = 'gallery-btn';
+      playPauseBtn.setAttribute('aria-label', 'Pause');
+      playPauseBtn.innerHTML = PAUSE_ICON; // autoplay starts it playing
+      playPauseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (el.paused) el.play().catch(() => {});
+        else el.pause();
+      });
+      el.addEventListener('play', () => {
+        playPauseBtn.innerHTML = PAUSE_ICON;
+        playPauseBtn.setAttribute('aria-label', 'Pause');
+      });
+      el.addEventListener('pause', () => {
+        playPauseBtn.innerHTML = PLAY_ICON;
+        playPauseBtn.setAttribute('aria-label', 'Play');
+      });
+      controls.appendChild(playPauseBtn);
+    } else {
+      controls.appendChild(document.createElement('span')); // pins fullscreen to the right
+    }
+
+    const fullscreenBtn = document.createElement('button');
+    fullscreenBtn.type = 'button';
+    fullscreenBtn.className = 'gallery-btn';
+    fullscreenBtn.setAttribute('aria-label', 'Fullscreen');
+    fullscreenBtn.innerHTML = FULLSCREEN_ICON;
+    fullscreenBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      requestFullscreenOn(el);
+    });
+    controls.appendChild(fullscreenBtn);
+
+    wrap.appendChild(controls);
+    return wrap;
+  };
+
+  // `revealAfter` is the flip's "covered" promise (see playCardFlip) — the
+  // real panel only becomes visible once the flip overlay has fully grown
+  // to cover the screen, so it never shows through mid-animation.
+  const openDetail = async (card, meta, revealAfter) => {
+    if (activeCard) activeCard.classList.remove('is-active');
+    activeCard = card;
+    card.classList.add('is-active');
+    rotationPaused = true;
+
+    const { folder, title, tag, description } = meta || getCardMeta(card);
 
     detailTitle.textContent = title;
     detailTag.textContent = tag;
     detailDescription.textContent = description || 'Description coming soon.';
-
     detailGallery.innerHTML = '';
+
+    // Full-res media starts loading right away, in parallel with the flip
+    // animation, so it's ready (or close to it) by the time we reveal.
+    const mediaPromise = card._mediaItems
+      ? Promise.resolve(card._mediaItems)
+      : discoverFullMedia(folder);
+
+    if (revealAfter) await revealAfter;
+
+    // The user may have closed the panel or clicked another card while we
+    // were waiting on the flip — don't reveal or populate a stale panel.
+    if (activeCard !== card) return;
+
     shell.classList.add('detail-open');
     detailPanel.classList.add('open');
     detailPanel.setAttribute('aria-hidden', 'false');
 
-    // Full-res media loads only now, on demand — not for every card up front.
-    if (!card._mediaItems) {
-      card._mediaItems = await discoverFullMedia(folder);
-    }
-
-    // The user may have closed the panel or clicked another card while the
-    // full-res media was still loading — don't populate a stale gallery.
+    card._mediaItems = await mediaPromise;
     if (activeCard !== card) return;
 
-    card._mediaItems.forEach((item) => detailGallery.appendChild(buildGalleryItem(item)));
+    detailGallery.innerHTML = '';
+    // A project with just one photo/video has nothing else to show next to
+    // it, so let it fill the gallery big instead of sitting in a small box.
+    const solo = card._mediaItems.length === 1;
+    card._mediaItems.forEach((item) => {
+      const galleryItem = buildGalleryItem(item);
+      if (solo) galleryItem.classList.add('solo');
+      detailGallery.appendChild(galleryItem);
+    });
   };
 
   const closeDetail = () => {
-    if (activeCard) activeCard.classList.remove('is-active');
-    activeCard = null;
-    rotationPaused = false;
-    shell.classList.remove('detail-open');
-    detailPanel.classList.remove('open');
-    detailPanel.setAttribute('aria-hidden', 'true');
+    const card = activeCard;
+    if (!card) return;
+    activeCard = null; // treat the panel as closed right away for input purposes
+
+    const meta = getCardMeta(card);
+    // Drop the highlight now so it matches the overlay's plain front face —
+    // otherwise the card would visibly "pop" an accent border on reveal.
+    card.classList.remove('is-active');
+
+    playCardFlipReverse(card, meta).then(() => {
+      // Only resume the ring once the card is fully back in view, so it
+      // can't drift away from the position the overlay is landing on.
+      rotationPaused = false;
+    });
   };
 
   cards.forEach((card) => {
@@ -270,7 +538,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (activeCard === card) {
         closeDetail();
       } else {
-        openDetail(card);
+        const meta = getCardMeta(card);
+        const flipCovered = playCardFlip(card, meta);
+        openDetail(card, meta, flipCovered);
       }
     });
   });
@@ -291,7 +561,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------------------------------------------------------------
   const applyCircularLayout = (angleOffset = 0) => {
     const rootStyles = getComputedStyle(document.documentElement);
-    const radius = parseFloat(rootStyles.getPropertyValue('--ring-radius')) || 300;
+    const baseRadius = parseFloat(rootStyles.getPropertyValue('--ring-radius')) || 300;
+    let radius = baseRadius;
+
+    // The ring's radius is a fixed pixel value, but the viewport isn't —
+    // on a shorter window (e.g. a 1080p-height browser vs. a taller 1440p
+    // one) the full-size ring reaches up far enough to collide with the
+    // nav bar. Shrink it just enough to clear the nav; tall-enough
+    // viewports (where the full radius already fits) are left untouched.
+    // Card height is read from computed (untransformed) CSS, not the live
+    // bounding rect — the cards themselves get scaled down below, and
+    // reading a transform-scaled height back in would feed the shrink into
+    // itself every frame.
+    if (cards.length) {
+      const cardHeight = parseFloat(getComputedStyle(cards[0]).height) || 240;
+      const maxRadiusForHeight = window.innerHeight / 2 - cardHeight / 2 - 70;
+      radius = Math.max(140, Math.min(radius, maxRadiusForHeight));
+    }
+
+    // Cards themselves shrink proportionally to how much the radius had to
+    // shrink, so a short (1080p-style) viewport doesn't end up with
+    // full-size cards packed onto a squeezed ring.
+    const cardScale = Math.max(0.68, Math.min(1, radius / baseRadius));
+
     const startAngle = ((parseFloat(rootStyles.getPropertyValue('--ring-start-angle')) || -90) * Math.PI) / 180;
     const ringGap = ((parseFloat(rootStyles.getPropertyValue('--ring-gap')) || 0) * Math.PI) / 180;
     const tilt = ((parseFloat(rootStyles.getPropertyValue('--ring-tilt')) || 0) * Math.PI) / 180;
@@ -329,6 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       card.style.setProperty('--x', `${x}px`);
       card.style.setProperty('--y', `${y}px`);
+      card.style.setProperty('--card-scale', cardScale.toFixed(3));
       card.style.zIndex = String(Math.round(10 + Math.sin(angle) * 10));
     });
   };
