@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const WORK_GRID = document.getElementById('work-grid');
 
   if (!WORK_GRID) return;
@@ -170,17 +170,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }, startDelay);
   };
 
-  cards.forEach((card, i) => {
+  // Figure out up front which cards actually have any preview media —
+  // a card whose folder is missing or empty gets pulled out of the ring
+  // entirely rather than sitting there as an empty box. This runs before
+  // the ring is first laid out below, so nothing empty ever flashes on
+  // screen to begin with.
+  const cardMedia = await Promise.all(cards.map(async (card) => {
     const folder = card.dataset.media;
-    if (!folder) return;
+    const items = folder ? await discoverPreviewMedia(folder) : [];
+    return { card, items };
+  }));
 
+  cardMedia.forEach(({ card, items }) => {
+    if (items.length) return;
+    card.remove();
+    const idx = cards.indexOf(card);
+    if (idx !== -1) cards.splice(idx, 1);
+  });
+
+  cardMedia.forEach(({ card, items }, i) => {
+    if (!items.length) return; // removed above
     // Grid view: cheap previews only. Full-res media is fetched lazily the
     // first time this card's detail panel is opened (see openDetail below).
-    discoverPreviewMedia(folder).then((items) => {
-      if (!items.length) return; // no files found in this card's folder yet
-      const elements = buildMediaLayer(card, items);
-      startCycle(elements, i * CARD_STAGGER_MS);
-    });
+    const elements = buildMediaLayer(card, items);
+    startCycle(elements, i * CARD_STAGGER_MS);
   });
 
   // ---------------------------------------------------------------
@@ -191,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // then caches it on the card so reopening doesn't re-fetch it.
   // ---------------------------------------------------------------
   const shell = document.querySelector('.portfolio-shell');
+  const ringCenterTitle = document.getElementById('ring-center-title');
+  const ringCenterPrograms = document.getElementById('ring-center-programs');
   const detailPanel = document.getElementById('work-detail');
   const detailTitle = document.getElementById('work-detail-title');
   const detailTag = document.getElementById('work-detail-tag');
@@ -198,10 +213,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailGallery = document.getElementById('work-detail-gallery');
   const detailClose = document.getElementById('work-detail-close');
 
+  // content.json entries can be a plain description string (old format) or
+  // an object { description, programs } — programs is the list of chips
+  // (e.g. "Photoshop", "Blender") shown under the title on hover.
   let descriptions = {};
+  let programsByNumber = {};
   fetch('content.json', { cache: 'no-store' })
     .then((res) => (res.ok ? res.json() : {}))
-    .then((data) => { descriptions = data; })
+    .then((data) => {
+      Object.entries(data || {}).forEach(([number, entry]) => {
+        if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+          descriptions[number] = entry.description || '';
+          programsByNumber[number] = Array.isArray(entry.programs) ? entry.programs : [];
+        } else {
+          descriptions[number] = entry || '';
+          programsByNumber[number] = [];
+        }
+      });
+    })
     .catch(() => {}); // fine if content.json doesn't exist yet
 
   let activeCard = null;
@@ -210,16 +239,42 @@ document.addEventListener('DOMContentLoaded', () => {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
 
-  // Title/tag/description for a card — read synchronously from its own DOM
-  // text and the already-loaded content.json. Shared by the flip's back
-  // face and the real detail panel so both show identical content.
+  // Title/tag/description/programs for a card — read synchronously from its
+  // own DOM text and the already-loaded content.json. Shared by the flip's
+  // back face, the real detail panel, and the ring-center hover label, so
+  // they all show identical content.
   const getCardMeta = (card) => {
     const folder = card.dataset.media;
     const number = (folder || '').split('/').pop();
     const title = card.querySelector('.portfolio-title')?.textContent.trim() || '';
     const tag = card.querySelector('.portfolio-tag')?.textContent.trim() || '';
     const description = descriptions[number] || '';
-    return { folder, title, tag, description };
+    const programs = programsByNumber[number] || [];
+    return { folder, title, tag, description, programs };
+  };
+
+  // Placeholder chip icon colors, cycled by a simple hash of the program
+  // name — swap program-chip-icon's background for a real logo image per
+  // program later (see the CSS comment on .program-chip-icon).
+  const PROGRAM_CHIP_COLORS = ['#ff5a1f', '#2dd4bf', '#f472b6', '#facc15', '#60a5fa', '#a78bfa', '#34d399'];
+  const colorForProgram = (name) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i += 1) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+    return PROGRAM_CHIP_COLORS[hash % PROGRAM_CHIP_COLORS.length];
+  };
+
+  const renderProgramChips = (container, programs) => {
+    container.innerHTML = '';
+    programs.forEach((name) => {
+      const chip = document.createElement('span');
+      chip.className = 'program-chip';
+      const icon = document.createElement('span');
+      icon.className = 'program-chip-icon';
+      icon.style.background = colorForProgram(name);
+      chip.appendChild(icon);
+      chip.appendChild(document.createTextNode(name));
+      container.appendChild(chip);
+    });
   };
 
   // ---------------------------------------------------------------
@@ -410,23 +465,56 @@ document.addEventListener('DOMContentLoaded', () => {
     if (item.type === 'video') {
       el = document.createElement('video');
       el.className = 'gallery-item-media';
-      el.src = item.src;
       el.muted = true;
       el.loop = true;
-      el.autoplay = true;
       el.playsInline = true;
+      el.preload = 'none'; // don't buffer anything until it's actually visible
       el.addEventListener('loadeddata', markLoaded, { once: true });
       el.addEventListener('error', markLoaded, { once: true });
     } else {
       el = document.createElement('img');
       el.className = 'gallery-item-media';
-      el.src = item.src;
+      el.loading = 'lazy';
+      el.decoding = 'async';
       el.alt = '';
       el.addEventListener('load', markLoaded, { once: true });
       el.addEventListener('error', markLoaded, { once: true });
-      if (el.complete && el.naturalWidth) markLoaded(); // already cached
     }
     wrap.appendChild(el);
+
+    // Only set the real src (and start decoding/buffering it) once this
+    // item has actually scrolled into view. A gallery with a dozen photos
+    // and videos used to fetch and decode all of them the moment the panel
+    // opened — a big chunk of the site's RAM use — this way only what's
+    // actually on screen ever gets loaded.
+    let started = false;
+    const startLoading = () => {
+      if (started) return;
+      started = true;
+      el.src = item.src;
+      if (item.type === 'video') el.load();
+      if (item.type === 'image' && el.complete && el.naturalWidth) markLoaded(); // already cached
+    };
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            startLoading();
+            if (item.type === 'video') el.play().catch(() => {});
+          } else if (item.type === 'video' && started) {
+            // Scrolled away — free the decoded frames/audio buffer rather
+            // than leaving it playing off-screen.
+            el.pause();
+          }
+        });
+      }, { root: detailPanel, rootMargin: '200px' });
+      io.observe(wrap);
+    } else {
+      // No IntersectionObserver support — fall back to loading immediately.
+      startLoading();
+      if (item.type === 'video') el.play().catch(() => {});
+    }
 
     const controls = document.createElement('div');
     controls.className = 'gallery-item-controls';
@@ -435,12 +523,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const playPauseBtn = document.createElement('button');
       playPauseBtn.type = 'button';
       playPauseBtn.className = 'gallery-btn';
-      playPauseBtn.setAttribute('aria-label', 'Pause');
-      playPauseBtn.innerHTML = PAUSE_ICON; // autoplay starts it playing
+      playPauseBtn.setAttribute('aria-label', 'Play');
+      playPauseBtn.innerHTML = PLAY_ICON;
       playPauseBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (el.paused) el.play().catch(() => {});
-        else el.pause();
+        if (el.paused) {
+          startLoading();
+          el.play().catch(() => {});
+        } else {
+          el.pause();
+        }
       });
       el.addEventListener('play', () => {
         playPauseBtn.innerHTML = PAUSE_ICON;
@@ -462,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fullscreenBtn.innerHTML = FULLSCREEN_ICON;
     fullscreenBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      startLoading();
       requestFullscreenOn(el);
     });
     controls.appendChild(fullscreenBtn);
@@ -530,6 +623,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Only resume the ring once the card is fully back in view, so it
       // can't drift away from the position the overlay is landing on.
       rotationPaused = false;
+      // The gallery is fully hidden now — tear it down so any playing/
+      // buffered videos are released instead of decoding away off-screen
+      // until the next card is opened.
+      detailGallery.querySelectorAll('video').forEach((v) => { v.pause(); v.removeAttribute('src'); v.load(); });
+      detailGallery.innerHTML = '';
     });
   };
 
@@ -543,6 +641,20 @@ document.addEventListener('DOMContentLoaded', () => {
         openDetail(card, meta, flipCovered);
       }
     });
+
+    // Show that card's title (and program chips) in the ring's center (in
+    // place of the logo) while it's hovered.
+    if (ringCenterTitle) {
+      card.addEventListener('mouseenter', () => {
+        const meta = getCardMeta(card);
+        ringCenterTitle.textContent = meta.title;
+        if (ringCenterPrograms) renderProgramChips(ringCenterPrograms, meta.programs);
+        shell.classList.add('card-hovering');
+      });
+      card.addEventListener('mouseleave', () => {
+        shell.classList.remove('card-hovering');
+      });
+    }
   });
 
   detailClose.addEventListener('click', closeDetail);
@@ -652,6 +764,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   applyCircularLayout();
+  // Cards sit stacked on top of each other (all at --x:0/--y:0) for a brief
+  // moment while their folders are being checked, above — they were styled
+  // like normal cards during that instant, so it briefly flashed as one
+  // plain box in the center. Now that they're actually laid out in the
+  // ring, let them look like normal cards again.
+  WORK_GRID.classList.remove('is-loading');
   window.addEventListener('resize', () => applyCircularLayout(angleOffset));
   requestAnimationFrame(tick);
 });

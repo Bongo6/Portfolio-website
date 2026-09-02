@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Aaron Van den Bossche — Portfolio</title>
+    <title>aarondesign</title>
     <meta name="description" content="Aaron Van den Bossche — design portfolio featuring photography, video, and creative work.">
     <meta name="theme-color" content="#050505">
 
@@ -44,15 +44,22 @@
   <body>
     <main class="portfolio-shell">
       <h1 class="sr-only">Aaron Van den Bossche — Design Portfolio</h1>
+      <div class="wip-banner">WORK IN PROGRESS, BE PATIENT, THANK YOU</div>
       <div class="portfolio-nav" aria-label="Portfolio navigation">
-        <a href="#">Contact</a>
+        <a href="contact.html">Contact</a>
         <a href="#">About</a>
         <a href="https://www.instagram.com/bongo.6_/" target="_blank" rel="noopener">Instagram</a>
       </div>
 
-      <section class="portfolio-grid" id="work-grid" aria-label="Portfolio work listing">
+      <section class="portfolio-grid is-loading" id="work-grid" aria-label="Portfolio work listing">
         <!-- Put your logo file at project root as `logo.png` or change the src below -->
         <img src="logo.png" alt="Logo" class="ring-center" />
+        <!-- Shows the hovered card's title (and program chips) in place of
+             the logo above. -->
+        <div class="ring-center-info" id="ring-center-info" aria-hidden="true">
+          <div class="ring-center-title" id="ring-center-title"></div>
+          <div class="ring-center-programs" id="ring-center-programs"></div>
+        </div>
 
         <!--
           Each card below points to a media folder via data-media.
@@ -64,7 +71,7 @@
         <article class="portfolio-card feature-card" data-media="media/01">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-01</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -72,7 +79,7 @@
         <article class="portfolio-card" data-media="media/02">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-02</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -80,7 +87,7 @@
         <article class="portfolio-card" data-media="media/03">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-03</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -88,7 +95,7 @@
         <article class="portfolio-card" data-media="media/04">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-04</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -96,7 +103,7 @@
         <article class="portfolio-card" data-media="media/05">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-05</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -104,7 +111,7 @@
         <article class="portfolio-card feature-card" data-media="media/06">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-06</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -112,7 +119,7 @@
         <article class="portfolio-card" data-media="media/07">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-07</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -120,7 +127,7 @@
         <article class="portfolio-card" data-media="media/08">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-08</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -128,7 +135,7 @@
         <article class="portfolio-card" data-media="media/09">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-09</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -136,7 +143,7 @@
         <article class="portfolio-card" data-media="media/10">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-10</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -144,7 +151,7 @@
         <article class="portfolio-card feature-card" data-media="media/11">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-11</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -152,7 +159,7 @@
         <article class="portfolio-card" data-media="media/12">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-12</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -160,7 +167,7 @@
         <article class="portfolio-card" data-media="media/13">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-13</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -168,7 +175,7 @@
         <article class="portfolio-card" data-media="media/14">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-14</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -176,7 +183,7 @@
         <article class="portfolio-card" data-media="media/15">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-15</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -184,7 +191,7 @@
         <article class="portfolio-card feature-card" data-media="media/16">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-16</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -192,7 +199,7 @@
         <article class="portfolio-card" data-media="media/17">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-17</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -200,7 +207,7 @@
         <article class="portfolio-card" data-media="media/18">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-18</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -208,7 +215,7 @@
         <article class="portfolio-card" data-media="media/19">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-19</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -216,7 +223,7 @@
         <article class="portfolio-card" data-media="media/20">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title"></div>
+            <div class="portfolio-title">TITLE-20</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
