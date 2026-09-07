@@ -54,6 +54,9 @@
       <section class="portfolio-grid is-loading" id="work-grid" aria-label="Portfolio work listing">
         <!-- Put your logo file at project root as `logo.png` or change the src below -->
         <img src="logo.png" alt="Logo" class="ring-center" />
+        <!-- Shown under the logo only while cards are still being checked/
+             laid out (see .portfolio-grid.is-loading in script.js). -->
+        <div class="ring-loading-text" aria-hidden="true">Loading...</div>
         <!-- Shows the hovered card's title (and program chips) in place of
              the logo above. -->
         <div class="ring-center-info" id="ring-center-info" aria-hidden="true">
