@@ -1,0 +1,4 @@
+Here i made a reload animation for a M1 Garand rifle.
+Made in Blender.
+I am showing a couple of different angles.
+My goal was to make it feel really human and work/learn with the graph editor a lot.

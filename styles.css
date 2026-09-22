@@ -476,32 +476,95 @@ html, body, * {
 
 .work-detail-description {
   font-family: 'Genos', sans-serif;
-  font-size: 17px;
-  line-height: 1.7;
-  color: #dddddd;
-  white-space: pre-line;
+  font-size: 21px;
+  line-height: 1.6;
+  color: #f5f5f5;
   margin: 0 0 32px;
 }
 
+/* Each line of the description gets its own little accent-colored dot,
+   like a loose bullet list rather than one block of running text. */
+.work-detail-description-line {
+  position: relative;
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.work-detail-description-line:last-child {
+  margin-bottom: 0;
+}
+
+.work-detail-description-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
 /* Justified-style gallery: every item keeps its own natural aspect ratio
-   (no cropping) and they wrap left-to-right in rows of a fixed height. */
+   (no cropping) and they all sit in a single row. --gallery-item-height is
+   computed in script.js (recomputeGalleryFit) so the row's items exactly
+   fill the panel's width; the zoom buttons scale that computed height up
+   or down, and the row scrolls horizontally (with no visible scrollbar)
+   once the items no longer fit. */
 .work-detail-gallery {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: flex-start;
   gap: 18px;
   width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge */
+}
+
+.work-detail-gallery::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Vertical-stack mode: items run one per row at their own natural aspect
+   ratio, like a case-study page you scroll down through, instead of being
+   squeezed/zoomed into one horizontal line. --gallery-item-width-pct (set
+   in script.js) is what the zoom buttons scale here instead of a row
+   height — 100% is edge to edge, and zooming out narrows every item into a
+   smaller centered column. */
+.work-detail-gallery.stack-vertical {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+.work-detail-gallery.stack-vertical .gallery-item {
+  width: var(--gallery-item-width-pct, 100%);
+  max-width: 100%;
+  height: auto;
+  min-height: 160px; /* keeps the placeholder visible before the real size is known */
+}
+
+.work-detail-gallery.stack-vertical .gallery-item-media {
+  width: 100%;
+  height: auto;
+  max-width: none;
+  max-height: none;
 }
 
 .gallery-item {
   position: relative;
-  height: 340px;
+  height: var(--gallery-item-height, 340px);
   width: 220px; /* default box until the real file's size is known */
+  flex: 0 0 auto;
   line-height: 0; /* avoid extra gap under the inline media element */
   background: #000;
   border: 2px solid #000000;
   overflow: hidden;
-  transition: width 0.25s ease;
+  transition: width 0.25s ease, height 0.2s ease;
 }
 
 .gallery-item.is-loaded {
@@ -552,13 +615,13 @@ html, body, * {
 
 .gallery-item-media {
   position: relative;
-  height: 340px;
+  height: var(--gallery-item-height, 340px);
   width: auto;
   max-width: none;
   display: block;
   object-fit: contain;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, height 0.2s ease;
 }
 
 .gallery-item.is-loaded .gallery-item-media {
@@ -608,6 +671,51 @@ html, body, * {
 }
 
 .gallery-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Layout toggle + zoom controls — a true viewport-fixed element (it's a
+   sibling of .work-detail in the markup, not nested inside it) pinned to
+   the bottom-right corner regardless of scrolling or the panel's own
+   slide/transform. z-index has to clear .work-detail's own (60) or the
+   panel would render on top of it and hide it while open. */
+.gallery-zoom-controls {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 65;
+}
+
+.gallery-zoom-controls[aria-hidden="true"] {
+  display: none;
+}
+
+.gallery-zoom-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.gallery-zoom-btn:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.gallery-zoom-btn svg {
   width: 16px;
   height: 16px;
 }
@@ -689,9 +797,10 @@ html, body, * {
 }
 
 @media (max-width: 980px) {
-  .gallery-item,
-  .gallery-item-media {
-    height: 220px;
+  /* Fallback only — script.js recomputes --gallery-item-height to fit the
+     row as soon as the gallery opens, so this mainly matters before JS runs. */
+  .work-detail-gallery {
+    --gallery-item-height: 220px;
   }
 
   .gallery-item {
@@ -700,13 +809,17 @@ html, body, * {
 }
 
 @media (max-width: 640px) {
-  .gallery-item,
-  .gallery-item-media {
-    height: 160px;
+  .work-detail-gallery {
+    --gallery-item-height: 160px;
   }
 
   .gallery-item {
     width: 120px;
+  }
+
+  .gallery-zoom-controls {
+    right: 16px;
+    bottom: 16px;
   }
 }
 

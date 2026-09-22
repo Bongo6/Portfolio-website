@@ -224,6 +224,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailDescription = document.getElementById('work-detail-description');
   const detailGallery = document.getElementById('work-detail-gallery');
   const detailClose = document.getElementById('work-detail-close');
+  const galleryZoomControls = document.getElementById('gallery-zoom-controls');
+  const galleryZoomIn = document.getElementById('gallery-zoom-in');
+  const galleryZoomOut = document.getElementById('gallery-zoom-out');
+  const galleryLayoutToggle = document.getElementById('gallery-layout-toggle');
 
   // content.json entries can be a plain description string (old format) or
   // an object { description, programs } — programs is the list of chips
@@ -250,6 +254,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
+
+  // Renders a description as one bulleted line per sentence/line (each gets
+  // its own little accent-colored dot) instead of one plain block of text.
+  // Shared by the real panel and the flip's back face so neither one "pops"
+  // into a different look when the overlay swaps out for the real thing.
+  const renderDescriptionHTML = (description) => {
+    const text = description || 'Description coming soon.';
+    const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return `<p class="work-detail-description-line">${escapeHtml(text)}</p>`;
+    return lines.map((line) => `<p class="work-detail-description-line">${escapeHtml(line)}</p>`).join('');
+  };
 
   // Title/tag/description/programs for a card — read synchronously from its
   // own DOM text and the already-loaded content.json. Shared by the flip's
@@ -323,7 +338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="card-flip-back-inner">
         <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
         ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
-        <p class="work-detail-description">${escapeHtml(meta.description || 'Description coming soon.')}</p>
+        <div class="work-detail-description">${renderDescriptionHTML(meta.description)}</div>
       </div>
     `;
 
@@ -398,7 +413,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="card-flip-back-inner">
         <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
         ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
-        <p class="work-detail-description">${escapeHtml(meta.description || 'Description coming soon.')}</p>
+        <div class="work-detail-description">${renderDescriptionHTML(meta.description)}</div>
       </div>
     `;
 
@@ -458,6 +473,89 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (req) req.call(el);
   };
 
+  // ---------------------------------------------------------------
+  // Gallery layout: "horizontal" is a justified single row — every item
+  // keeps its own aspect ratio, and --gallery-item-height (read by
+  // .gallery-item / .gallery-item-media in styles.css) is solved so the
+  // whole row fills the panel's width edge to edge. "vertical" stacks items
+  // full-width, one per row, each at its own natural height — like a
+  // case-study page you scroll down through. The same zoom buttons work in
+  // both: in horizontal mode they scale the row's fitted height, and in
+  // vertical mode they scale how wide each stacked item sits instead.
+  // ---------------------------------------------------------------
+  const GALLERY_GAP_PX = 18; // keep in sync with .work-detail-gallery's gap
+  const GALLERY_MIN_ITEM_HEIGHT = 90;
+  const GALLERY_MAX_ITEM_HEIGHT = 640;
+  const GALLERY_DEFAULT_ASPECT = 1.5; // guess used until an item's real size loads
+  const GALLERY_ZOOM_STEP = 0.2;
+  const GALLERY_ZOOM_MIN = 0.5;
+  const GALLERY_ZOOM_MAX = 2.5;
+  const GALLERY_VERTICAL_MIN_WIDTH_PCT = 35;
+  const GALLERY_VERTICAL_MAX_WIDTH_PCT = 100;
+  // Icons show the mode a click would switch TO.
+  const STACK_HORIZONTAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>';
+  const STACK_VERTICAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="5" rx="1"/><rect x="4" y="10" width="16" height="5" rx="1"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>';
+  let galleryZoom = 1;
+  let galleryLayoutMode = 'horizontal';
+
+  const recomputeGalleryFit = () => {
+    if (galleryLayoutMode !== 'horizontal') return;
+    const items = Array.from(detailGallery.children);
+    if (items.length <= 1) return; // solo gallery sizes itself via its own CSS rule
+    const containerWidth = detailGallery.clientWidth;
+    if (!containerWidth) return;
+    const sumAspect = items.reduce((sum, el) => sum + (el._aspect || GALLERY_DEFAULT_ASPECT), 0);
+    const totalGap = GALLERY_GAP_PX * (items.length - 1);
+    const fitHeight = (containerWidth - totalGap) / sumAspect;
+    const clamped = Math.max(GALLERY_MIN_ITEM_HEIGHT, Math.min(GALLERY_MAX_ITEM_HEIGHT, fitHeight));
+    detailGallery.style.setProperty('--gallery-item-height', `${(clamped * galleryZoom).toFixed(1)}px`);
+  };
+
+  // Maps the same 0.5–2.5 zoom range onto a 35%–100% item width, so zooming
+  // out narrows the vertical stack into a smaller centered column and
+  // zooming in widens it back up to the full panel width.
+  const applyVerticalZoom = () => {
+    if (galleryLayoutMode !== 'vertical') return;
+    const t = (galleryZoom - GALLERY_ZOOM_MIN) / (GALLERY_ZOOM_MAX - GALLERY_ZOOM_MIN);
+    const widthPct = GALLERY_VERTICAL_MIN_WIDTH_PCT + t * (GALLERY_VERTICAL_MAX_WIDTH_PCT - GALLERY_VERTICAL_MIN_WIDTH_PCT);
+    detailGallery.style.setProperty('--gallery-item-width-pct', `${widthPct.toFixed(1)}%`);
+  };
+
+  const setGalleryZoom = (next) => {
+    galleryZoom = Math.max(GALLERY_ZOOM_MIN, Math.min(GALLERY_ZOOM_MAX, next));
+    if (galleryLayoutMode === 'vertical') applyVerticalZoom();
+    else recomputeGalleryFit();
+  };
+
+  const updateGalleryLayoutUI = () => {
+    const isVertical = galleryLayoutMode === 'vertical';
+    if (galleryLayoutToggle) {
+      galleryLayoutToggle.innerHTML = isVertical ? STACK_HORIZONTAL_ICON : STACK_VERTICAL_ICON;
+      galleryLayoutToggle.setAttribute('aria-label', isVertical ? 'Stack horizontally' : 'Stack vertically');
+    }
+  };
+
+  const setGalleryLayoutMode = (mode) => {
+    galleryLayoutMode = mode;
+    detailGallery.classList.toggle('stack-vertical', mode === 'vertical');
+    if (mode === 'vertical') {
+      detailGallery.style.removeProperty('--gallery-item-height');
+      applyVerticalZoom();
+    } else {
+      detailGallery.style.removeProperty('--gallery-item-width-pct');
+      recomputeGalleryFit();
+    }
+    updateGalleryLayoutUI();
+  };
+
+  if (galleryZoomIn) galleryZoomIn.addEventListener('click', () => setGalleryZoom(galleryZoom + GALLERY_ZOOM_STEP));
+  if (galleryZoomOut) galleryZoomOut.addEventListener('click', () => setGalleryZoom(galleryZoom - GALLERY_ZOOM_STEP));
+  if (galleryLayoutToggle) {
+    galleryLayoutToggle.addEventListener('click', () => {
+      setGalleryLayoutMode(galleryLayoutMode === 'vertical' ? 'horizontal' : 'vertical');
+    });
+  }
+
   const buildGalleryItem = (item) => {
     const wrap = document.createElement('div');
     wrap.className = 'gallery-item';
@@ -473,6 +571,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const markLoaded = () => wrap.classList.add('is-loaded');
 
+    // Once this item's real dimensions are known, store its aspect ratio
+    // on the wrapper and re-fit the whole row — a placeholder guess is
+    // used for every item until this fires.
+    const updateAspect = () => {
+      let ratio = null;
+      if (item.type === 'video') {
+        if (el.videoWidth && el.videoHeight) ratio = el.videoWidth / el.videoHeight;
+      } else if (el.naturalWidth && el.naturalHeight) {
+        ratio = el.naturalWidth / el.naturalHeight;
+      }
+      if (ratio) {
+        wrap._aspect = ratio;
+        recomputeGalleryFit();
+      }
+    };
+
     let el;
     if (item.type === 'video') {
       el = document.createElement('video');
@@ -483,6 +597,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       el.preload = 'none'; // don't buffer anything until it's actually visible
       el.addEventListener('loadeddata', markLoaded, { once: true });
       el.addEventListener('error', markLoaded, { once: true });
+      el.addEventListener('loadedmetadata', updateAspect, { once: true });
     } else {
       el = document.createElement('img');
       el.className = 'gallery-item-media';
@@ -491,6 +606,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       el.alt = '';
       el.addEventListener('load', markLoaded, { once: true });
       el.addEventListener('error', markLoaded, { once: true });
+      el.addEventListener('load', updateAspect, { once: true });
     }
     wrap.appendChild(el);
 
@@ -520,6 +636,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             el.pause();
           }
         });
+        // detailPanel works as root for both layout modes: whichever of it
+        // or detailGallery actually clips/scrolls (the panel's own vertical
+        // scroll in vertical-stack mode, the gallery's horizontal scroll in
+        // horizontal mode) still applies — any scrolling ancestor between
+        // the item and root keeps clipping regardless of which element is
+        // named root.
       }, { root: detailPanel, rootMargin: '200px' });
       io.observe(wrap);
     } else {
@@ -588,7 +710,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     detailTitle.textContent = title;
     detailTag.textContent = tag;
-    detailDescription.textContent = description || 'Description coming soon.';
+    detailDescription.innerHTML = renderDescriptionHTML(description);
     detailGallery.innerHTML = '';
 
     // Full-res media starts loading right away, in parallel with the flip
@@ -619,6 +741,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (solo) galleryItem.classList.add('solo');
       detailGallery.appendChild(galleryItem);
     });
+
+    galleryZoom = 1;
+    galleryLayoutMode = 'horizontal';
+    detailGallery.classList.remove('stack-vertical');
+    detailGallery.style.removeProperty('--gallery-item-height');
+    detailGallery.style.removeProperty('--gallery-item-width-pct');
+    if (galleryZoomControls) {
+      galleryZoomControls.setAttribute('aria-hidden', solo ? 'true' : 'false');
+    }
+    updateGalleryLayoutUI();
+    recomputeGalleryFit();
   };
 
   const closeDetail = () => {
@@ -630,6 +763,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Drop the highlight now so it matches the overlay's plain front face —
     // otherwise the card would visibly "pop" an accent border on reveal.
     card.classList.remove('is-active');
+    // gallery-zoom-controls lives outside .work-detail (see index.html) so
+    // its position:fixed anchors to the real viewport, not that panel's own
+    // transform — which means it no longer slides off-screen for free with
+    // the panel, and has to be hidden explicitly here.
+    if (galleryZoomControls) galleryZoomControls.setAttribute('aria-hidden', 'true');
 
     playCardFlipReverse(card, meta).then(() => {
       // Only resume the ring once the card is fully back in view, so it
@@ -783,5 +921,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ring, let them look like normal cards again.
   WORK_GRID.classList.remove('is-loading');
   window.addEventListener('resize', () => applyCircularLayout(angleOffset));
+  window.addEventListener('resize', () => {
+    if (activeCard) recomputeGalleryFit();
+  });
   requestAnimationFrame(tick);
 });
