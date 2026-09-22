@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const fileExists = async (path) => {
     try {
-      const res = await fetch(path, { method: 'HEAD', cache: 'no-store' });
+      const res = await fetch(path, { method: 'HEAD' });
       return res.ok;
     } catch (err) {
       return false;
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const loadManifest = async (folder) => {
     try {
-      const res = await fetch(`${folder}/manifest.json`, { cache: 'no-store' });
+      const res = await fetch(`${folder}/manifest.json`);
       if (!res.ok) return null;
       const data = await res.json();
       return Array.isArray(data) ? data : null;
@@ -62,18 +62,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Fallback discovery for a folder with no manifest.json: probes every
   // number up to MAX_INDEX_SCAN and keeps whatever it finds, gaps included.
+  // A card whose media/<NN> folder doesn't exist at all (e.g. a placeholder
+  // card with nothing added yet) has no manifest.json either, so it used to
+  // fall all the way through to here and scan every one of the 80 indexes
+  // one at a time, checking every extension in sequence before moving on —
+  // up to 560 sequential network round trips for a single empty folder.
+  // With several placeholder cards on the page, that was the single biggest
+  // cause of slow loads. Now each index checks all extensions in parallel
+  // (one round trip instead of up to 7), and a short run of consecutive
+  // misses ends the scan early instead of grinding all the way to 80.
   const discoverMediaFallback = async (folder) => {
     const items = [];
+    let consecutiveMisses = 0;
     for (let index = 1; index <= MAX_INDEX_SCAN; index += 1) {
-      let matchedExt = null;
-      for (const ext of MEDIA_EXTENSIONS) {
-        // eslint-disable-next-line no-await-in-loop
-        if (await fileExists(`${folder}/${index}.${ext}`)) {
-          matchedExt = ext;
-          break;
-        }
+      // eslint-disable-next-line no-await-in-loop
+      const results = await Promise.all(
+        MEDIA_EXTENSIONS.map((ext) => fileExists(`${folder}/${index}.${ext}`).then((ok) => (ok ? ext : null)))
+      );
+      const matchedExt = results.find((ext) => ext !== null);
+      if (!matchedExt) {
+        consecutiveMisses += 1;
+        if (consecutiveMisses >= 5) break;
+        continue;
       }
-      if (!matchedExt) continue;
+      consecutiveMisses = 0;
       items.push({
         index,
         src: `${folder}/${index}.${matchedExt}`,
@@ -218,7 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // (e.g. "Photoshop", "Blender") shown under the title on hover.
   let descriptions = {};
   let programsByNumber = {};
-  fetch('content.json', { cache: 'no-store' })
+  fetch('content.json')
     .then((res) => (res.ok ? res.json() : {}))
     .then((data) => {
       Object.entries(data || {}).forEach(([number, entry]) => {

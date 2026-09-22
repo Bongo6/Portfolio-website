@@ -1,6 +1,7 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Jersey+25&family=Jersey+10&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Mardo:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Genos:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Syne:wght@400..800&display=swap');
+﻿/* Fonts are loaded via <link rel="preconnect"/"stylesheet"> tags in each
+   page's <head> instead of @import — @import blocks the page from
+   rendering anything until the font CSS finishes downloading, while a
+   <link> can be discovered and fetched in parallel with everything else. */
 
 html, body {
   margin: 0;
