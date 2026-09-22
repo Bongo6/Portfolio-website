@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const ringCenterPrograms = document.getElementById('ring-center-programs');
   const detailPanel = document.getElementById('work-detail');
   const detailTitle = document.getElementById('work-detail-title');
+  const detailPrograms = document.getElementById('work-detail-programs');
   const detailTag = document.getElementById('work-detail-tag');
   const detailDescription = document.getElementById('work-detail-description');
   const detailGallery = document.getElementById('work-detail-gallery');
@@ -304,6 +305,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   };
 
+  // Same chip markup as renderProgramChips, but as an HTML string — for the
+  // card-flip back face, which is built as one innerHTML template alongside
+  // the title/tag/description so it matches the real panel from the start.
+  const renderProgramChipsHTML = (programs) => (programs || []).map((name) => `
+    <span class="program-chip"><span class="program-chip-icon" style="background:${colorForProgram(name)}"></span>${escapeHtml(name)}</span>
+  `).join('');
+
   // ---------------------------------------------------------------
   // Card-flip transition: the card's current look flips over in 3D
   // and grows to cover the screen — and its back face shows the
@@ -337,6 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     back.innerHTML = `
       <div class="card-flip-back-inner">
         <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
+        <div class="work-detail-programs">${renderProgramChipsHTML(meta.programs)}</div>
         ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
         <div class="work-detail-description">${renderDescriptionHTML(meta.description)}</div>
       </div>
@@ -412,6 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     back.innerHTML = `
       <div class="card-flip-back-inner">
         <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
+        <div class="work-detail-programs">${renderProgramChipsHTML(meta.programs)}</div>
         ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
         <div class="work-detail-description">${renderDescriptionHTML(meta.description)}</div>
       </div>
@@ -496,7 +506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const STACK_HORIZONTAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>';
   const STACK_VERTICAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="5" rx="1"/><rect x="4" y="10" width="16" height="5" rx="1"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>';
   let galleryZoom = 1;
-  let galleryLayoutMode = 'horizontal';
+  let galleryLayoutMode = 'vertical'; // default layout when a gallery opens
 
   const recomputeGalleryFit = () => {
     if (galleryLayoutMode !== 'horizontal') return;
@@ -538,6 +548,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setGalleryLayoutMode = (mode) => {
     galleryLayoutMode = mode;
     detailGallery.classList.toggle('stack-vertical', mode === 'vertical');
+    detailPanel.classList.toggle('vertical-gallery', mode === 'vertical');
     if (mode === 'vertical') {
       detailGallery.style.removeProperty('--gallery-item-height');
       applyVerticalZoom();
@@ -706,9 +717,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     card.classList.add('is-active');
     rotationPaused = true;
 
-    const { folder, title, tag, description } = meta || getCardMeta(card);
+    const { folder, title, tag, description, programs } = meta || getCardMeta(card);
 
     detailTitle.textContent = title;
+    if (detailPrograms) renderProgramChips(detailPrograms, programs);
     detailTag.textContent = tag;
     detailDescription.innerHTML = renderDescriptionHTML(description);
     detailGallery.innerHTML = '';
@@ -743,15 +755,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     galleryZoom = 1;
-    galleryLayoutMode = 'horizontal';
-    detailGallery.classList.remove('stack-vertical');
     detailGallery.style.removeProperty('--gallery-item-height');
     detailGallery.style.removeProperty('--gallery-item-width-pct');
     if (galleryZoomControls) {
       galleryZoomControls.setAttribute('aria-hidden', solo ? 'true' : 'false');
     }
-    updateGalleryLayoutUI();
-    recomputeGalleryFit();
+    setGalleryLayoutMode('vertical'); // default layout each time a gallery opens
   };
 
   const closeDetail = () => {

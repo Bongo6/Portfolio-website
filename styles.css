@@ -459,6 +459,20 @@ html, body, * {
   letter-spacing: -0.02em;
 }
 
+/* Program chips (e.g. "Blender") for the detail panel — reuses the same
+   .program-chip styling already defined for the ring-center hover label,
+   just laid out as a left-to-right row instead of a stacked column. */
+.work-detail-programs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.work-detail-programs:empty {
+  display: none;
+}
+
 .work-detail-tag {
   display: inline-block;
   border: 2px solid #ffffff;
@@ -503,6 +517,33 @@ html, body, * {
   height: 7px;
   border-radius: 50%;
   background: var(--color-accent);
+}
+
+/* In vertical-stack mode the gallery below is centered, so the title and
+   description are centered too, to match. text-align:center alone centers
+   the title text and the tag pill fine, but each description line is a
+   full-width block with its dot pinned to its own left edge — centering
+   just the text would leave the dot behind. Shrinking each line to
+   fit-content and centering that box (with the text kept left-aligned
+   inside it) keeps every dot glued to its line while the whole line moves
+   to the middle as a unit. */
+.work-detail.vertical-gallery .work-detail-inner {
+  text-align: center;
+}
+
+/* text-align:center centers the title text and the tag pill fine, but
+   .work-detail-programs is a flex row (flex containers ignore text-align),
+   so it needs its own centering. */
+.work-detail.vertical-gallery .work-detail-programs {
+  justify-content: center;
+}
+
+.work-detail.vertical-gallery .work-detail-description-line {
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
 }
 
 /* Justified-style gallery: every item keeps its own natural aspect ratio
