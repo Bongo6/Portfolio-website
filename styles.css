@@ -269,6 +269,13 @@ html, body, * {
   flex-shrink: 0;
 }
 
+/* A real program logo from icons/ instead of the colored square. */
+.program-chip-icon.is-logo {
+  border-radius: 0;
+  object-fit: contain;
+  background: none;
+}
+
 /* inner wrapper used to group card text content; no animation here —
    rotation is driven by JS so cards stay visually upright. */
 .card-inner {
@@ -303,8 +310,26 @@ html, body, * {
   overflow: hidden;
   transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rot)) scale(var(--card-scale, 1));
   transform-style: preserve-3d;
-  transition: transform 0.24s ease, box-shadow 0.24s ease, filter 0.24s ease,
-    background 0.3s ease, border-color 0.3s ease, opacity 0.6s ease;
+  /* Opacity and blur are driven frame-by-frame by script.js (category
+     wheel transitions), so they aren't transitioned here. */
+  transition: transform 0.24s ease, box-shadow 0.24s ease,
+    background 0.3s ease, border-color 0.3s ease;
+}
+
+/* While a wheel is swapping, script.js moves every card each frame —
+   transitions would only make the motion lag behind. */
+.portfolio-grid.is-switching .portfolio-card {
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Cards that belong to a different category than the one on screen. */
+.portfolio-card.is-off-ring {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.portfolio-card.is-leaving {
+  pointer-events: none;
 }
 
 /* Cards briefly sit stacked on top of each other (all at the ring's center)
@@ -861,6 +886,262 @@ html, body, * {
   .gallery-zoom-controls {
     right: 16px;
     bottom: 16px;
+  }
+}
+
+/* -----------------------------------------------------------
+   Category wheels: list of categories on the right, the big outlined
+   category name behind the ring, and the "scroll" hint at the bottom.
+   ----------------------------------------------------------- */
+.category-ghost {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+  transition: opacity 0.4s ease;
+}
+
+.category-ghost-text {
+  position: absolute;
+  font-family: 'Jersey 25', sans-serif;
+  font-size: clamp(64px, 13vw, 240px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.14);
+}
+
+.category-ghost-text.is-entering {
+  animation: category-ghost-in 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.category-ghost-text.is-leaving {
+  animation: category-ghost-out 0.6s cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+
+@keyframes category-ghost-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--dir, 1) * 24vh)) scale(0.9);
+    letter-spacing: 0.35em;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    letter-spacing: 0.02em;
+    filter: blur(0);
+  }
+}
+
+@keyframes category-ghost-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--dir, 1) * -24vh)) scale(1.08);
+    filter: blur(12px);
+  }
+}
+
+.category-rail {
+  position: absolute;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  /* Long lists stay inside the screen; script.js scrolls the active name
+     into view, and the edges fade out so it's clear there's more. */
+  max-height: calc(100vh - 170px);
+  overflow: hidden;
+  padding: 24px 0 24px 20px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  z-index: 45;
+  transition: opacity 0.4s ease;
+}
+
+.category-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  background: none;
+  border: 0;
+  color: rgba(255, 255, 255, 0.38);
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.category-rail-item::after {
+  content: '';
+  width: 14px;
+  height: 2px;
+  background: currentColor;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+}
+
+.category-rail-num,
+.category-rail-count {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.category-rail-count::before { content: '('; }
+.category-rail-count::after { content: ')'; }
+
+.category-rail-item:hover,
+.category-rail-item:focus-visible {
+  color: #ffffff;
+}
+
+.category-rail-item.is-active {
+  color: #ffffff;
+  transform: translateX(-6px);
+}
+
+.category-rail-item.is-active::after {
+  width: 46px;
+  background: var(--color-accent);
+}
+
+.category-rail-item.is-active .category-rail-num {
+  color: var(--color-accent);
+  opacity: 1;
+}
+
+.category-rail-item.is-bumped {
+  animation: category-rail-bump 0.5s ease;
+}
+
+@keyframes category-rail-bump {
+  0%, 100% { transform: translateX(-6px); }
+  30% { transform: translateX(-16px); }
+  60% { transform: translateX(-2px); }
+}
+
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 45;
+  transition: opacity 0.6s ease;
+}
+
+/* Once someone has switched categories they've got it — keep the hint,
+   but quieter. */
+.portfolio-shell.has-switched .scroll-hint {
+  opacity: 0.35;
+}
+
+.scroll-hint-mouse {
+  position: relative;
+  width: 16px;
+  height: 25px;
+  border: 2px solid #ffffff;
+  border-radius: 9px;
+}
+
+.scroll-hint-wheel {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 2px;
+  height: 5px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--color-accent);
+  animation: scroll-hint-wheel 1.6s ease-in-out infinite;
+}
+
+@keyframes scroll-hint-wheel {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(9px); opacity: 0; }
+  100% { transform: translateY(9px); opacity: 0; }
+}
+
+@media (pointer: coarse) {
+  .scroll-hint-mouse { display: none; }
+}
+
+.portfolio-shell.detail-open .category-rail,
+.portfolio-shell.detail-open .scroll-hint,
+.portfolio-shell.detail-open .category-ghost,
+.portfolio-shell.single-category .category-rail,
+.portfolio-shell.single-category .scroll-hint {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .category-rail {
+    top: 52px;
+    right: auto;
+    left: 50%;
+    bottom: auto;
+    transform: translateX(-50%);
+    flex-direction: row;
+    gap: 14px;
+    max-width: calc(100vw - 32px);
+    max-height: none;
+    padding: 0 24px;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  }
+
+  .category-rail-item {
+    flex-shrink: 0;
+  }
+
+  .category-rail-item::after,
+  .category-rail-count,
+  .category-rail-name {
+    display: none;
+  }
+
+  .category-rail-item.is-active .category-rail-name {
+    display: inline;
+  }
+
+  .category-rail-item.is-active {
+    transform: none;
+  }
+
+  .scroll-hint {
+    font-size: 12px;
+    bottom: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-ghost-text.is-entering,
+  .category-ghost-text.is-leaving,
+  .scroll-hint-wheel {
+    animation-duration: 0.01s;
   }
 }
 

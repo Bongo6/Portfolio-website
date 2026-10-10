@@ -1,0 +1,20 @@
+[
+  {
+    "index": 1,
+    "src": "1.mp4",
+    "type": "video",
+    "preview": "1.preview.jpg"
+  },
+  {
+    "index": 2,
+    "src": "2.mp4",
+    "type": "video",
+    "preview": "2.preview.jpg"
+  },
+  {
+    "index": 3,
+    "src": "3.mp4",
+    "type": "video",
+    "preview": "3.preview.jpg"
+  }
+]

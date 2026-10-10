@@ -37,37 +37,37 @@
   },
   {
     "index": 7,
-    "src": "7.mov",
+    "src": "7.mp4",
     "type": "video",
     "preview": "7.preview.jpg"
   },
   {
     "index": 8,
-    "src": "8.mov",
+    "src": "8.mp4",
     "type": "video",
     "preview": "8.preview.jpg"
   },
   {
     "index": 9,
-    "src": "9.mov",
+    "src": "9.mp4",
     "type": "video",
     "preview": "9.preview.jpg"
   },
   {
     "index": 10,
-    "src": "10.mov",
+    "src": "10.mp4",
     "type": "video",
     "preview": "10.preview.jpg"
   },
   {
     "index": 11,
-    "src": "11.mov",
+    "src": "11.mp4",
     "type": "video",
     "preview": "11.preview.jpg"
   },
   {
     "index": 12,
-    "src": "12.mov",
+    "src": "12.mp4",
     "type": "video",
     "preview": "12.preview.jpg"
   }

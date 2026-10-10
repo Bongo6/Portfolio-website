@@ -1,0 +1,2 @@
+This folder is hidden from the site while this file is here.
+Delete this file to show it again.

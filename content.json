@@ -1,8 +1,8 @@
 {
-  "01": { "description": "", "programs": ["Photoshop", "Blender"] },
-  "02": { "description": "", "programs": ["Photoshop"] },
-  "03": { "description": "", "programs": ["Photoshop"] },
-  "04": { "description": "", "programs": ["Photoshop", "Blender"] },
+  "01": { "description": "", "programs": ["TouchDesigner"] },
+  "02": { "description": "", "programs": ["TouchDesigner"] },
+  "03": { "description": "", "programs": ["TouchDesigner"] },
+  "04": { "description": "", "programs": ["TouchDesigner"] },
   "05": { "description": "", "programs": ["Photoshop"] },
   "06": { "description": "MOSS, fill in description here", "programs": ["Photoshop", "Blender"] },
   "07": { "description": "", "programs": ["Photoshop"] },

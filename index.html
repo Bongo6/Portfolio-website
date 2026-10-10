@@ -56,6 +56,10 @@
         <a href="https://www.instagram.com/bongo.6_/" target="_blank" rel="noopener">Instagram</a>
       </div>
 
+      <!-- Big outlined name of the category on screen, behind the ring
+           (filled in and animated by script.js). -->
+      <div class="category-ghost" id="category-ghost" aria-hidden="true"></div>
+
       <section class="portfolio-grid is-loading" id="work-grid" aria-label="Portfolio work listing">
         <!-- Put your logo file at project root as `logo.png` or change the src below -->
         <img src="logo.png" alt="Logo" class="ring-center" />
@@ -79,7 +83,7 @@
         <article class="portfolio-card feature-card" data-media="media/01">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title">TITLE-01</div>
+            <div class="portfolio-title">Glitch art experimentation set 1</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -87,7 +91,7 @@
         <article class="portfolio-card" data-media="media/02">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title">TITLE-02</div>
+            <div class="portfolio-title">Glitch art experimentation set 2</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -95,7 +99,7 @@
         <article class="portfolio-card" data-media="media/03">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title">TITLE-03</div>
+            <div class="portfolio-title">Glitch art experimentation set 3</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -103,7 +107,7 @@
         <article class="portfolio-card" data-media="media/04">
           <div class="card-inner">
             <div class="portfolio-number"></div>
-            <div class="portfolio-title">TITLE-04</div>
+            <div class="portfolio-title">Glitch art experimentation set 4</div>
             <div class="portfolio-tag"></div>
           </div>
         </article>
@@ -236,6 +240,14 @@
           </div>
         </article>
       </section>
+
+      <!-- One wheel per category: the list to jump between them, and a hint
+           that scrolling switches wheels. Both are filled in by script.js. -->
+      <nav class="category-rail" id="category-rail" aria-label="Categories"></nav>
+      <div class="scroll-hint" id="scroll-hint" aria-hidden="true">
+        <span class="scroll-hint-mouse"><span class="scroll-hint-wheel"></span></span>
+        <span class="scroll-hint-text">Scroll to switch category</span>
+      </div>
 
       <!--
         Work detail panel. Content per card comes from two places:

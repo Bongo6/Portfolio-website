@@ -52,5 +52,11 @@
     "src": "13.png",
     "type": "image",
     "preview": "13.preview.jpg"
+  },
+  {
+    "index": 14,
+    "src": "14.mp4",
+    "type": "video",
+    "preview": "14.preview.jpg"
   }
 ]

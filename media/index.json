@@ -1,0 +1,288 @@
+[
+  {
+    "folder": "media/01",
+    "title": "Glitch art experimentation set 1",
+    "description": "",
+    "programs": [
+      "TouchDesigner"
+    ],
+    "category": "Glitch art"
+  },
+  {
+    "folder": "media/02",
+    "title": "Glitch art experimentation set 2",
+    "description": "",
+    "programs": [
+      "TouchDesigner"
+    ],
+    "category": "Glitch art"
+  },
+  {
+    "folder": "media/03",
+    "title": "Glitch art experimentation set 3",
+    "description": "",
+    "programs": [
+      "TouchDesigner"
+    ],
+    "category": "Glitch art"
+  },
+  {
+    "folder": "media/04",
+    "title": "Glitch art experimentation set 4",
+    "description": "",
+    "programs": [
+      "TouchDesigner"
+    ],
+    "category": "Glitch art"
+  },
+  {
+    "folder": "media/05",
+    "title": "TITLE-05",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/06",
+    "title": "TITLE-06",
+    "description": "MOSS, fill in description here",
+    "programs": [
+      "Photoshop",
+      "Blender"
+    ],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/07",
+    "title": "TITLE-07",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/09",
+    "title": "TITLE-09",
+    "description": "",
+    "programs": [
+      "Photoshop",
+      "Blender"
+    ],
+    "category": "Photo & video"
+  },
+  {
+    "folder": "media/10",
+    "title": "TITLE-10",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "Photo & video"
+  },
+  {
+    "folder": "media/11",
+    "title": "TITLE-11",
+    "description": "",
+    "programs": [
+      "Photoshop",
+      "Blender"
+    ],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/13",
+    "title": "TITLE-13",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "Photo & video"
+  },
+  {
+    "folder": "media/14",
+    "title": "TITLE-14",
+    "description": "",
+    "programs": [
+      "Photoshop",
+      "Blender"
+    ],
+    "category": "Photo & video"
+  },
+  {
+    "folder": "media/15",
+    "title": "TITLE-15",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/16",
+    "title": "Reload animation M1 Garand",
+    "description": "Here i made a reload animation for an M1 Garand rifle.\nMade in Blender.\nI am showing a couple of different angles.\nMy goal was to make it feel really human and work/learn with the graph editor a lot.",
+    "programs": [
+      "Blender"
+    ],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/17",
+    "title": "TITLE-17",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "Posters"
+  },
+  {
+    "folder": "media/18",
+    "title": "TITLE-18",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "Posters"
+  },
+  {
+    "folder": "media/19",
+    "title": "TITLE-19",
+    "description": "",
+    "programs": [
+      "Photoshop",
+      "Blender"
+    ],
+    "category": "Posters"
+  },
+  {
+    "folder": "media/20",
+    "title": "TITLE-20",
+    "description": "",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "Posters"
+  },
+  {
+    "folder": "media/21",
+    "title": "TITLE-21",
+    "description": "",
+    "programs": [],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/22",
+    "title": "TITLE-22",
+    "description": "",
+    "programs": [],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/23",
+    "title": "TITLE-23",
+    "description": "",
+    "programs": [],
+    "category": "Posters"
+  },
+  {
+    "folder": "media/24",
+    "title": "TITLE-24",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/25",
+    "title": "TITLE-25",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/26",
+    "title": "TITLE-26",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/27",
+    "title": "TITLE-27",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/28",
+    "title": "TITLE-28",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/29",
+    "title": "TITLE-29",
+    "description": "",
+    "programs": [],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/30",
+    "title": "TITLE-30",
+    "description": "",
+    "programs": [],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/31",
+    "title": "TITLE-31",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/32",
+    "title": "TITLE-32",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/33",
+    "title": "TITLE-33",
+    "description": "",
+    "programs": [],
+    "category": "Posters"
+  },
+  {
+    "folder": "media/34",
+    "title": "TITLE-34",
+    "description": "",
+    "programs": [],
+    "category": "Posters"
+  },
+  {
+    "folder": "media/35",
+    "title": "TITLE-35",
+    "description": "",
+    "programs": [],
+    "category": "3D & animation"
+  },
+  {
+    "folder": "media/36",
+    "title": "TITLE-36",
+    "description": "",
+    "programs": [],
+    "category": "Experiments"
+  },
+  {
+    "folder": "media/37",
+    "title": "TITLE-37",
+    "description": "",
+    "programs": [],
+    "category": "Posters"
+  }
+]

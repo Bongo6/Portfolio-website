@@ -1,0 +1,21 @@
+HOW TO ADD A WORK (media folders)
+=================================
+
+1. Make a new folder in here with the next number, e.g. media\38
+2. Drop the photos/videos in it (straight from SaveClip etc. is fine -
+   they get renamed to 1, 2, 3... in the order you downloaded them).
+3. Double-click update.bat in the main site folder.
+   It makes the previews, puts the card on the site, and creates
+   title.txt, description.txt and programs.txt in the folder.
+4. Fill in those three files:
+     title.txt        the title on the site
+     description.txt  every line becomes one bullet point
+     programs.txt     e.g.  Blender, Photoshop
+     category.txt     which wheel it's on, e.g.  Posters
+                      (same name = same wheel; a new name makes a new wheel)
+                      several wheels: separate with commas, e.g.  Glitch art, Experiments
+   Text changes show up on a refresh - no need to run update.bat again.
+
+Hide a work:   put a file called "skip folder.txt" in its folder.
+Program logos: update.bat downloads them; to use your own, put e.g.
+               icons\touchdesigner.png in the icons folder.

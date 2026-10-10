@@ -3,6 +3,84 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!WORK_GRID) return;
 
+  const fetchJson = async (url) => {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      return res.ok ? await res.json() : null;
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const makeCard = (folder, title) => {
+    const card = document.createElement('article');
+    card.className = 'portfolio-card';
+    card.dataset.media = folder;
+    card.innerHTML = '<div class="card-inner"><div class="portfolio-number"></div><div class="portfolio-title"></div><div class="portfolio-tag"></div></div>';
+    card.querySelector('.portfolio-title').textContent = title || '';
+    return card;
+  };
+
+  // All three lists are made by update.bat (tools/build_site.py):
+  // media/index.json — one entry per media/NN folder (title/description/
+  //   programs from that folder's .txt files; skipped folders left out)
+  // works.json — the works/<title>/ folders
+  // icons/index.json — which program logos exist in icons/
+  const [mediaIndex, worksList, iconIndex, wheelGroupsText] = await Promise.all([
+    fetchJson('media/index.json'),
+    fetchJson('works.json'),
+    fetchJson('icons/index.json'),
+    fetch('media/wheels.txt', { cache: 'no-cache' })
+      .then((res) => (res.ok ? res.text() : ''))
+      .catch(() => ''),
+  ]);
+
+  // media/wheels.txt (optional) bundles several categories onto one wheel:
+  //   3D & animation: Modeling, Shading, Animation, Character design
+  // Every category listed after the colon goes on the wheel named before it,
+  // and the lines' order is the wheels' order. category.txt files are left
+  // as they are, so deleting/renaming wheels.txt brings back one wheel per
+  // category. Categories not listed anywhere still get their own wheel.
+  const wheelOfCategory = {};
+  const wheelOrder = [];
+  (wheelGroupsText || '').split(/\r?\n/).forEach((line) => {
+    const clean = line.replace(/^\uFEFF/, '').trim();
+    if (!clean || clean.startsWith('#') || !clean.includes(':')) return;
+    let wheel = clean.slice(0, clean.indexOf(':')).trim();
+    if (!wheel) return;
+    // "(none)" = these categories don't get a wheel while grouped (the work
+    // still shows on the wheels of its other categories).
+    if (wheel.toLowerCase() === '(none)') wheel = null;
+    else wheelOrder.push(wheel.toLowerCase());
+    clean.slice(clean.indexOf(':') + 1).split(/[,;]+/).map((c) => c.trim()).filter(Boolean)
+      .forEach((category) => { wheelOfCategory[category.toLowerCase()] = wheel; });
+  });
+
+  // Every media/NN folder in media/index.json gets a card, so a new folder
+  // shows up after running update.bat without touching index.html. The
+  // cards written in index.html are only a fallback for when that list
+  // doesn't exist yet.
+  const mediaByFolder = {};
+  if (Array.isArray(mediaIndex) && mediaIndex.length) {
+    WORK_GRID.querySelectorAll('.portfolio-card').forEach((card) => card.remove());
+    mediaIndex.forEach((entry) => {
+      if (!entry || !entry.folder) return;
+      mediaByFolder[entry.folder] = entry;
+      WORK_GRID.appendChild(makeCard(entry.folder, entry.title));
+    });
+  }
+
+  // works/<title>/ folders, newest first, ahead of the media cards.
+  const worksByFolder = {};
+  const firstMediaCard = WORK_GRID.querySelector('.portfolio-card');
+  (Array.isArray(worksList) ? worksList : []).forEach((work) => {
+    if (!work || !work.folder || !Array.isArray(work.items) || !work.items.length) return;
+    worksByFolder[work.folder] = work;
+    WORK_GRID.insertBefore(makeCard(work.folder, work.title), firstMediaCard);
+  });
+
+  const programIcons = iconIndex && typeof iconIndex === 'object' ? iconIndex : {};
+
   const cards = Array.from(WORK_GRID.querySelectorAll('.portfolio-card'));
 
   // Wrap existing card contents in a `.card-inner` so we can counter-rotate
@@ -98,6 +176,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Full-resolution items for a folder — used only by the detail-panel
   // gallery, fetched on demand rather than up front for every card.
   const discoverFullMedia = async (folder) => {
+    const work = worksByFolder[folder];
+    if (work) return work.items.map((m, i) => ({ index: i + 1, src: m.src, type: m.type }));
     const manifest = await loadManifest(folder);
     if (manifest) {
       return manifest.map((m) => ({
@@ -113,11 +193,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   // (a representative frame stands in for video), so a card never has to
   // decode a multi-megabyte photo or buffer a video just to sit in the ring.
   const discoverPreviewMedia = async (folder) => {
+    const work = worksByFolder[folder];
+    if (work) {
+      // A work built without ffmpeg has no previews — use the real file then.
+      return work.items.map((m, i) => (m.preview
+        ? { index: i + 1, src: m.preview, type: 'image' }
+        : { index: i + 1, src: m.src, type: m.type }));
+    }
     const manifest = await loadManifest(folder);
     if (manifest) {
-      return manifest
-        .filter((m) => m.preview)
-        .map((m) => ({ index: m.index, src: `${folder}/${m.preview}`, type: 'image' }));
+      const withPreview = manifest.filter((m) => m.preview);
+      if (withPreview.length) {
+        return withPreview.map((m) => ({ index: m.index, src: `${folder}/${m.preview}`, type: 'image' }));
+      }
+      // Built without ffmpeg, so no previews yet — use the real files.
+      return manifest.map((m) => ({ index: m.index, src: `${folder}/${m.src}`, type: m.type }));
     }
     // No manifest and no preview files to point to — fall back to the
     // real media so the grid isn't empty (heavier, but better than blank).
@@ -171,26 +261,86 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     };
 
-    setTimeout(() => {
-      show(current);
-      if (elements.length > 1) {
+    // First image shows straight away (a card can fly in at any moment now
+    // that categories swap); only the cycling to the next one is staggered.
+    show(current);
+    if (elements.length > 1) {
+      setTimeout(() => {
         setInterval(() => {
           current = (current + 1) % elements.length;
           show(current);
         }, CYCLE_INTERVAL_MS);
-      }
-    }, startDelay);
+      }, startDelay);
+    }
+  };
+
+  // Hand-made cards (media/NN) take their title from media/NN/title.txt,
+  // so renaming a work is just editing that one file — the title written
+  // in index.html is only a fallback for a folder without one.
+  // The same goes for description.txt and programs.txt: they're read live
+  // here, so editing any of the three .txt files only needs a page refresh
+  // (update.bat is only needed when photos/videos or folders change).
+  const fetchText = async (url) => {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      return res.ok ? (await res.text()).replace(/^﻿/, '') : null;
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const loadFolderTitle = async (card) => {
+    const folder = card.dataset.media;
+    if (!folder) return;
+    if (worksByFolder[folder]) { // works/ cards get theirs from works.json
+      card._category = (worksByFolder[folder].category || '').trim();
+      return;
+    }
+    const [titleText, descriptionText, programsText, categoryText] = await Promise.all([
+      fetchText(`${folder}/title.txt`),
+      fetchText(`${folder}/description.txt`),
+      fetchText(`${folder}/programs.txt`),
+      fetchText(`${folder}/category.txt`),
+    ]);
+    // Which wheel the card sits on — category.txt, else media/index.json.
+    card._category = ((categoryText || '').split(/\r?\n/)[0] || '').trim()
+      || ((mediaByFolder[folder] || {}).category || '').trim();
+    const title = (titleText || '').split(/\r?\n/)[0].trim();
+    const titleEl = card.querySelector('.portfolio-title');
+    if (title && titleEl) titleEl.textContent = title;
+    if (descriptionText !== null) card._description = descriptionText.trim();
+    if (programsText !== null) {
+      card._programs = programsText.split(/[,;\r\n]+/).map((p) => p.trim()).filter(Boolean);
+    }
+  };
+
+  // A "skip folder.txt" file in a media/NN folder hides that card from the
+  // site until the file is deleted again (works/ folders handle this in
+  // update.bat instead, so their cards never reach works.json at all).
+  const isSkipped = async (card) => {
+    const folder = card.dataset.media;
+    if (!folder || worksByFolder[folder]) return false;
+    try {
+      const res = await fetch(`${folder}/skip%20folder.txt`, { method: 'HEAD', cache: 'no-cache' });
+      return res.ok;
+    } catch (err) {
+      return false;
+    }
   };
 
   // Figure out up front which cards actually have any preview media —
-  // a card whose folder is missing or empty gets pulled out of the ring
-  // entirely rather than sitting there as an empty box. This runs before
-  // the ring is first laid out below, so nothing empty ever flashes on
-  // screen to begin with.
+  // a card whose folder is missing or empty (or skipped) gets pulled out
+  // of the ring entirely rather than sitting there as an empty box. This
+  // runs before the ring is first laid out below, so nothing empty ever
+  // flashes on screen to begin with. Titles from title.txt load alongside.
   const cardMedia = await Promise.all(cards.map(async (card) => {
     const folder = card.dataset.media;
-    const items = folder ? await discoverPreviewMedia(folder) : [];
-    return { card, items };
+    const [items, , skipped] = await Promise.all([
+      folder ? discoverPreviewMedia(folder) : [],
+      loadFolderTitle(card),
+      isSkipped(card),
+    ]);
+    return { card, items: skipped ? [] : items };
   }));
 
   cardMedia.forEach(({ card, items }) => {
@@ -206,6 +356,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     // first time this card's detail panel is opened (see openDetail below).
     const elements = buildMediaLayer(card, items);
     startCycle(elements, i * CARD_STAGGER_MS);
+  });
+
+  // A work can sit on more than one wheel: category.txt can list several
+  // names separated by commas ("Glitch art, Experiments"). The first name is
+  // the card itself; every extra wheel gets its own copy of the card.
+  cards.slice().forEach((card) => {
+    const names = [];
+    (card._category || '').split(/[,;\r\n]+/).map((n) => n.trim()).filter(Boolean).forEach((n) => {
+      const key = n.toLowerCase();
+      const wheel = key in wheelOfCategory ? wheelOfCategory[key] : n;
+      if (wheel === null) return;
+      if (!names.some((existing) => existing.toLowerCase() === wheel.toLowerCase())) names.push(wheel);
+    });
+    card._wheel = names[0] || '';
+    let after = card;
+    names.slice(1).forEach((name) => {
+      const copy = card.cloneNode(true);
+      copy._description = card._description;
+      copy._programs = card._programs;
+      copy._category = card._category;
+      copy._wheel = name;
+      copy._isCopy = true;
+      WORK_GRID.insertBefore(copy, after.nextSibling);
+      cards.splice(cards.indexOf(after) + 1, 0, copy);
+      after = copy;
+      startCycle(Array.from(copy.querySelectorAll('.card-media img, .card-media video')), 0);
+    });
   });
 
   // ---------------------------------------------------------------
@@ -276,41 +453,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     const number = (folder || '').split('/').pop();
     const title = card.querySelector('.portfolio-title')?.textContent.trim() || '';
     const tag = card.querySelector('.portfolio-tag')?.textContent.trim() || '';
-    const description = descriptions[number] || '';
-    const programs = programsByNumber[number] || [];
+    const work = worksByFolder[folder];
+    const entry = mediaByFolder[folder] || {};
+    // Live .txt contents first, then media/index.json, then old content.json.
+    const description = work
+      ? (work.description || '')
+      : (card._description ?? entry.description ?? descriptions[number] ?? '');
+    const programs = work
+      ? (work.programs || [])
+      : (card._programs ?? entry.programs ?? programsByNumber[number] ?? []);
     return { folder, title, tag, description, programs };
   };
 
-  // Placeholder chip icon colors, cycled by a simple hash of the program
-  // name — swap program-chip-icon's background for a real logo image per
-  // program later (see the CSS comment on .program-chip-icon).
+  // Each chip shows that program's logo from icons/ (found by update.bat —
+  // see icons/index.json) and falls back to a plain colored square when
+  // there's no logo for it yet.
   const PROGRAM_CHIP_COLORS = ['#ff5a1f', '#2dd4bf', '#f472b6', '#facc15', '#60a5fa', '#a78bfa', '#34d399'];
   const colorForProgram = (name) => {
     let hash = 0;
     for (let i = 0; i < name.length; i += 1) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
     return PROGRAM_CHIP_COLORS[hash % PROGRAM_CHIP_COLORS.length];
   };
+  const programKey = (name) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  const renderProgramChipsHTML = (programs) => (programs || []).map((name) => {
+    const iconFile = programIcons[programKey(name)];
+    const icon = iconFile
+      ? `<img class="program-chip-icon is-logo" src="icons/${escapeHtml(iconFile)}" alt="">`
+      : `<span class="program-chip-icon" style="background:${colorForProgram(name)}"></span>`;
+    return `<span class="program-chip">${icon}${escapeHtml(name)}</span>`;
+  }).join('');
 
   const renderProgramChips = (container, programs) => {
-    container.innerHTML = '';
-    programs.forEach((name) => {
-      const chip = document.createElement('span');
-      chip.className = 'program-chip';
-      const icon = document.createElement('span');
-      icon.className = 'program-chip-icon';
-      icon.style.background = colorForProgram(name);
-      chip.appendChild(icon);
-      chip.appendChild(document.createTextNode(name));
-      container.appendChild(chip);
-    });
+    container.innerHTML = renderProgramChipsHTML(programs);
   };
-
-  // Same chip markup as renderProgramChips, but as an HTML string — for the
-  // card-flip back face, which is built as one innerHTML template alongside
-  // the title/tag/description so it matches the real panel from the start.
-  const renderProgramChipsHTML = (programs) => (programs || []).map((name) => `
-    <span class="program-chip"><span class="program-chip-icon" style="background:${colorForProgram(name)}"></span>${escapeHtml(name)}</span>
-  `).join('');
 
   // ---------------------------------------------------------------
   // Card-flip transition: the card's current look flips over in 3D
@@ -828,74 +1004,348 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ---------------------------------------------------------------
-  // Circular ring layout (unchanged from original)
+  // Category wheels. Every work belongs to a category (category.txt in its
+  // folder) and each category gets its own ring — only one is on screen at
+  // a time. Scrolling, swiping, the arrow keys or clicking a name in the
+  // list on the right swaps it: the current cards sweep outward and fade
+  // away while the next ring unfolds out of the centre, both drifting in
+  // the direction you scrolled, with the big category name behind the ring
+  // sliding along with them.
   // ---------------------------------------------------------------
-  const applyCircularLayout = (angleOffset = 0) => {
+  const OTHER_CATEGORY = 'Other';
+  const categories = [];
+  const addToWheel = (card) => {
+    const name = (card._wheel || '').trim() || OTHER_CATEGORY;
+    let cat = categories.find((c) => c.key === name.toLowerCase());
+    if (!cat) {
+      cat = { key: name.toLowerCase(), name, cards: [] };
+      categories.push(cat);
+    }
+    cat.cards.push(card);
+  };
+  // Wheel order follows each work's main (first) category; copies on extra
+  // wheels join after, so listing a second category never reorders wheels.
+  cards.filter((card) => !card._isCopy).forEach(addToWheel);
+  cards.filter((card) => card._isCopy).forEach(addToWheel);
+  // Works without a category.txt always come last.
+  // With media/wheels.txt, wheels follow the order of its lines.
+  const wheelRank = (cat) => {
+    if (cat.name === OTHER_CATEGORY) return Infinity;
+    const i = wheelOrder.indexOf(cat.key);
+    return i === -1 ? wheelOrder.length : i;
+  };
+  categories.forEach((cat, i) => { cat.firstSeen = i; });
+  categories.sort((a, b) => (wheelRank(a) - wheelRank(b)) || (a.firstSeen - b.firstSeen));
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const IN_MS = reducedMotion ? 250 : 950;
+  const OUT_MS = reducedMotion ? 200 : 560;
+  const IN_DELAY_MS = reducedMotion ? 0 : 240;
+  const IN_STAGGER_MS = reducedMotion ? 0 : 45;
+  const OUT_STAGGER_MS = reducedMotion ? 0 : 22;
+  const NUDGE_MS = 520;
+
+  const clamp01 = (t) => Math.max(0, Math.min(1, t));
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  const easeInCubic = (t) => t * t * t;
+  const easeOutBack = (t) => {
+    const c1 = 1.35;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  };
+
+  let activeCategory = 0;
+  let switching = false;
+  let nudgeStart = -Infinity;
+  let nudgeDir = 0;
+
+  cards.forEach((card) => {
+    card._phase = 'off';
+    card.classList.add('is-off-ring');
+  });
+
+  const parseLength = (str, ref) => {
+    if (!str) return NaN;
+    const s = String(str).trim();
+    if (s.endsWith('%')) return (parseFloat(s) / 100) * ref;
+    if (s.endsWith('vw')) return (parseFloat(s) / 100) * window.innerWidth;
+    if (s.endsWith('vh')) return (parseFloat(s) / 100) * window.innerHeight;
+    if (s.endsWith('px')) return parseFloat(s);
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  // Ring geometry for a ring of `count` cards — same rules as the original
+  // single ring (shrink to clear the nav on short screens), plus: rings with
+  // only a few cards pull in a little so they don't look empty, and rings
+  // with lots of cards shrink the cards so they don't pile up.
+  const ringGeometry = (count) => {
     const rootStyles = getComputedStyle(document.documentElement);
     const baseRadius = parseFloat(rootStyles.getPropertyValue('--ring-radius')) || 300;
     let radius = baseRadius;
-
-    // The ring's radius is a fixed pixel value, but the viewport isn't —
-    // on a shorter window (e.g. a 1080p-height browser vs. a taller 1440p
-    // one) the full-size ring reaches up far enough to collide with the
-    // nav bar. Shrink it just enough to clear the nav; tall-enough
-    // viewports (where the full radius already fits) are left untouched.
-    // Card height is read from computed (untransformed) CSS, not the live
-    // bounding rect — the cards themselves get scaled down below, and
-    // reading a transform-scaled height back in would feed the shrink into
-    // itself every frame.
+    let cardWidth = 200;
     if (cards.length) {
-      const cardHeight = parseFloat(getComputedStyle(cards[0]).height) || 240;
+      const cardStyle = getComputedStyle(cards[0]);
+      const cardHeight = parseFloat(cardStyle.height) || 240;
+      cardWidth = parseFloat(cardStyle.width) || 200;
       const maxRadiusForHeight = window.innerHeight / 2 - cardHeight / 2 - 70;
-      radius = Math.max(140, Math.min(radius, maxRadiusForHeight));
+      // ...and on a narrow (phone) screen, keep the ring inside the width.
+      const maxRadiusForWidth = window.innerWidth / 2 - cardWidth / 2 - 12;
+      radius = Math.max(110, Math.min(radius, maxRadiusForHeight, maxRadiusForWidth));
     }
+    const sizeScale = Math.max(0.68, Math.min(1, radius / baseRadius));
+    radius *= Math.min(1, 0.62 + count * 0.04);
 
-    // Cards themselves shrink proportionally to how much the radius had to
-    // shrink, so a short (1080p-style) viewport doesn't end up with
-    // full-size cards packed onto a squeezed ring.
-    const cardScale = Math.max(0.68, Math.min(1, radius / baseRadius));
+    const RING_DESIGN_CARD_COUNT = 18;
+    const crowdScale = Math.max(0.6, Math.min(1, Math.sqrt(RING_DESIGN_CARD_COUNT / Math.max(count, 1))));
+    // Never let neighbouring cards overlap into one solid blob: cap the card
+    // width at a bit more than the space each one gets on the ring.
+    const roomScale = ((Math.PI * 2 * radius) / Math.max(count, 1)) * 1.25 / cardWidth;
 
-    const startAngle = ((parseFloat(rootStyles.getPropertyValue('--ring-start-angle')) || -90) * Math.PI) / 180;
     const ringGap = ((parseFloat(rootStyles.getPropertyValue('--ring-gap')) || 0) * Math.PI) / 180;
-    const tilt = ((parseFloat(rootStyles.getPropertyValue('--ring-tilt')) || 0) * Math.PI) / 180;
-    const horizontalShift = parseFloat(rootStyles.getPropertyValue('--ring-horizontal-shift')) || 0;
-    const verticalShift = parseFloat(rootStyles.getPropertyValue('--ring-vertical-shift')) || 0;
     const gridRect = WORK_GRID.getBoundingClientRect();
-    const step = (Math.PI * 2) / cards.length + ringGap;
-
-    const parseLength = (str, ref) => {
-      if (!str) return NaN;
-      const s = String(str).trim();
-      if (s.endsWith('%')) return (parseFloat(s) / 100) * ref;
-      if (s.endsWith('vw')) return (parseFloat(s) / 100) * window.innerWidth;
-      if (s.endsWith('vh')) return (parseFloat(s) / 100) * window.innerHeight;
-      if (s.endsWith('px')) return parseFloat(s);
-      const n = parseFloat(s);
-      return Number.isFinite(n) ? n : NaN;
+    const parsedCenterX = parseLength(rootStyles.getPropertyValue('--ring-center-x') || '', gridRect.width);
+    const parsedCenterY = parseLength(rootStyles.getPropertyValue('--ring-center-y') || '', gridRect.height);
+    return {
+      radius,
+      cardScale: Math.max(0.42, Math.min(sizeScale * crowdScale, roomScale)),
+      startAngle: ((parseFloat(rootStyles.getPropertyValue('--ring-start-angle')) || -90) * Math.PI) / 180,
+      tilt: ((parseFloat(rootStyles.getPropertyValue('--ring-tilt')) || 0) * Math.PI) / 180,
+      step: (Math.PI * 2) / Math.max(count, 1) + ringGap,
+      cx: Number.isFinite(parsedCenterX) ? parsedCenterX - gridRect.width / 2 : 0,
+      cy: Number.isFinite(parsedCenterY) ? parsedCenterY - gridRect.height / 2 : 0,
     };
+  };
 
-    const centerXVar = rootStyles.getPropertyValue('--ring-center-x') || '';
-    const centerYVar = rootStyles.getPropertyValue('--ring-center-y') || '';
-    const parsedCenterX = parseLength(centerXVar, gridRect.width);
-    const parsedCenterY = parseLength(centerYVar, gridRect.height);
-    const centerOffsetX = Number.isFinite(parsedCenterX)
-      ? parsedCenterX - gridRect.width / 2
-      : (parseLength(rootStyles.getPropertyValue('--ring-horizontal-shift'), gridRect.width) || horizontalShift);
-    const centerOffsetY = Number.isFinite(parsedCenterY)
-      ? parsedCenterY - gridRect.height / 2
-      : (parseLength(rootStyles.getPropertyValue('--ring-vertical-shift'), gridRect.height) || verticalShift);
+  // Positions every card that's on screen (or on its way in/out) for this
+  // frame. Cards entering start bunched up small in the centre, slightly
+  // rotated back and offset in the scroll direction, then spring out onto
+  // the ring; cards leaving swing further round, fly outward and fade.
+  const applyCircularLayout = (angleOffset = 0, now = performance.now()) => {
+    const geometryBySize = {};
+    const nudgeT = clamp01((now - nudgeStart) / NUDGE_MS);
+    const nudgeY = nudgeT < 1 ? Math.sin(nudgeT * Math.PI) * (1 - nudgeT) * nudgeDir * -36 : 0;
 
-    cards.forEach((card, index) => {
-      const angle = startAngle + index * step + tilt + angleOffset;
-      const x = Math.cos(angle) * radius + centerOffsetX;
-      const y = Math.sin(angle) * radius + centerOffsetY;
+    cards.forEach((card) => {
+      if (card._phase === 'off') return;
+      const size = card._ringSize || 1;
+      const geo = geometryBySize[size] || (geometryBySize[size] = ringGeometry(size));
 
+      let angle = geo.startAngle + card._ringIndex * geo.step + geo.tilt + angleOffset;
+      let r = geo.radius;
+      let dy = nudgeY;
+      let scale = geo.cardScale;
+      let opacity = 1;
+      let blur = 0;
+
+      if (card._phase === 'in') {
+        const p = clamp01((now - card._t0) / IN_MS);
+        const spring = easeOutBack(p);
+        const smooth = easeOutCubic(p);
+        angle -= (1 - smooth) * card._dir * 0.9;
+        r *= 0.1 + 0.9 * spring;
+        dy += (1 - smooth) * card._dir * 170;
+        scale *= 0.3 + 0.7 * smooth;
+        opacity = clamp01(p * 2.4);
+        blur = (1 - smooth) * 9;
+        if (p >= 1) card._phase = 'idle';
+      } else if (card._phase === 'out') {
+        const p = clamp01((now - card._t0) / OUT_MS);
+        const e = easeInCubic(p);
+        angle += e * card._dir * 0.65;
+        r *= 1 + 0.55 * e;
+        dy -= e * card._dir * 240;
+        scale *= 1 - 0.35 * e;
+        opacity = 1 - clamp01(p * 1.15);
+        blur = e * 12;
+        if (p >= 1) {
+          card._phase = 'off';
+          card.classList.add('is-off-ring');
+          card.classList.remove('is-leaving');
+          return;
+        }
+      }
+
+      const x = Math.cos(angle) * r + geo.cx;
+      const y = Math.sin(angle) * r + geo.cy + dy;
       card.style.setProperty('--x', `${x}px`);
       card.style.setProperty('--y', `${y}px`);
-      card.style.setProperty('--card-scale', cardScale.toFixed(3));
+      card.style.setProperty('--card-scale', scale.toFixed(3));
+      card.style.opacity = opacity.toFixed(3);
+      card.style.filter = blur > 0.05 ? `blur(${blur.toFixed(1)}px)` : '';
       card.style.zIndex = String(Math.round(10 + Math.sin(angle) * 10));
     });
   };
+
+  // ---- Category list (right side), big ghost title, scroll hint ----------
+  const rail = document.getElementById('category-rail');
+  const ghost = document.getElementById('category-ghost');
+  const hint = document.getElementById('scroll-hint');
+  const hintText = hint ? hint.querySelector('.scroll-hint-text') : null;
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  if (hintText) hintText.textContent = isTouch ? 'Swipe up or down to switch category' : 'Scroll to switch category';
+  if (categories.length < 2) shell.classList.add('single-category');
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const railItems = categories.map((cat, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'category-rail-item';
+    btn.innerHTML = `<span class="category-rail-num">${pad2(i + 1)}</span><span class="category-rail-name">${escapeHtml(cat.name)}</span><span class="category-rail-count">${cat.cards.length}</span>`;
+    btn.addEventListener('click', () => goToCategory(i));
+    if (rail) rail.appendChild(btn);
+    return btn;
+  });
+
+  const showGhost = (name, dir) => {
+    if (!ghost) return;
+    ghost.querySelectorAll('.category-ghost-text').forEach((old) => {
+      old.style.setProperty('--dir', dir);
+      old.classList.remove('is-entering');
+      old.classList.add('is-leaving');
+      setTimeout(() => old.remove(), 900);
+    });
+    const text = document.createElement('span');
+    text.className = 'category-ghost-text is-entering';
+    text.style.setProperty('--dir', dir);
+    text.textContent = name;
+    ghost.appendChild(text);
+  };
+
+  const updateCategoryUI = (dir) => {
+    railItems.forEach((btn, i) => {
+      const active = i === activeCategory;
+      btn.classList.toggle('is-active', active);
+      if (active) btn.setAttribute('aria-current', 'true');
+      else btn.removeAttribute('aria-current');
+    });
+    if (rail) {
+      rail.style.setProperty('--active-index', activeCategory);
+      // With lots of categories the list is taller (or, on phones, wider)
+      // than the screen — glide it so the active name stays in view.
+      const btn = railItems[activeCategory];
+      if (btn && rail.scrollHeight > rail.clientHeight + 1) {
+        rail.scrollTo({ top: btn.offsetTop - rail.clientHeight / 2 + btn.offsetHeight / 2, behavior: 'smooth' });
+      }
+      if (btn && rail.scrollWidth > rail.clientWidth + 1) {
+        rail.scrollTo({ left: btn.offsetLeft - rail.clientWidth / 2 + btn.offsetWidth / 2, behavior: 'smooth' });
+      }
+    }
+    showGhost(categories[activeCategory] ? categories[activeCategory].name : '', dir);
+  };
+
+  const enterCategory = (index, dir, t0) => {
+    const ring = categories[index] ? categories[index].cards : [];
+    ring.forEach((card, i) => {
+      card._phase = 'in';
+      card._dir = dir;
+      card._t0 = t0 + i * IN_STAGGER_MS;
+      card._ringIndex = i;
+      card._ringSize = ring.length;
+      card.style.opacity = '0';
+      card.classList.remove('is-off-ring', 'is-leaving');
+    });
+    return IN_DELAY_MS + ring.length * IN_STAGGER_MS + IN_MS;
+  };
+
+  const switchCategory = (target, dir) => {
+    if (switching || activeCard || target === activeCategory) return;
+    if (target < 0 || target >= categories.length) return;
+    const now = performance.now();
+    switching = true;
+    WORK_GRID.classList.add('is-switching');
+    shell.classList.remove('card-hovering');
+    categories[activeCategory].cards.forEach((card, i) => {
+      if (card._phase === 'off') return;
+      card._phase = 'out';
+      card._dir = dir;
+      card._t0 = now + i * OUT_STAGGER_MS;
+      card.classList.add('is-leaving');
+    });
+    activeCategory = target;
+    const total = enterCategory(target, dir, now + IN_DELAY_MS);
+    updateCategoryUI(dir);
+    shell.classList.add('has-switched');
+    setTimeout(() => {
+      switching = false;
+      WORK_GRID.classList.remove('is-switching');
+    }, total);
+  };
+
+  // At the first/last category: a little bounce instead of nothing happening,
+  // so it's clear there's no more in that direction.
+  const nudge = (dir) => {
+    nudgeStart = performance.now();
+    nudgeDir = dir;
+    const btn = railItems[activeCategory];
+    if (btn) {
+      btn.classList.remove('is-bumped');
+      // eslint-disable-next-line no-unused-expressions
+      btn.offsetWidth;
+      btn.classList.add('is-bumped');
+    }
+  };
+
+  const goRelative = (dir) => {
+    const target = activeCategory + dir;
+    if (target < 0 || target >= categories.length) nudge(dir);
+    else switchCategory(target, dir);
+  };
+
+  function goToCategory(index) {
+    if (index === activeCategory) return;
+    switchCategory(index, index > activeCategory ? 1 : -1);
+  }
+
+  // Mouse wheel / trackpad: one category per scroll gesture. Small scrolls
+  // add up until they pass a threshold; after a switch, further scroll
+  // events (including a trackpad's momentum) are ignored until the wheel
+  // has been still for a moment, so one flick never skips two categories.
+  let wheelAccum = 0;
+  let lastWheelAt = 0;
+  let wheelLockedUntil = 0;
+  window.addEventListener('wheel', (e) => {
+    if (activeCard || shell.classList.contains('detail-open')) return;
+    const now = performance.now();
+    const quiet = now - lastWheelAt > 200;
+    lastWheelAt = now;
+    if (now < wheelLockedUntil) {
+      wheelLockedUntil = Math.max(wheelLockedUntil, now + 160);
+      return;
+    }
+    if (quiet) wheelAccum = 0;
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;
+    const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    wheelAccum += delta * unit;
+    if (Math.abs(wheelAccum) >= 40) {
+      goRelative(Math.sign(wheelAccum));
+      wheelAccum = 0;
+      wheelLockedUntil = now + Math.min(IN_DELAY_MS + IN_MS, 900);
+    }
+  }, { passive: true });
+
+  // Touch: swipe up = next category, swipe down = previous.
+  let touchStartY = null;
+  let touchStartX = null;
+  window.addEventListener('touchstart', (e) => {
+    if (activeCard || e.touches.length !== 1) { touchStartY = null; return; }
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  window.addEventListener('touchend', (e) => {
+    if (touchStartY === null || activeCard) return;
+    const t = e.changedTouches[0];
+    const dy = t.clientY - touchStartY;
+    const dx = t.clientX - touchStartX;
+    touchStartY = null;
+    if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx)) goRelative(dy < 0 ? 1 : -1);
+  }, { passive: true });
+
+  document.addEventListener('keydown', (e) => {
+    if (activeCard) return;
+    if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goRelative(1); }
+    if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goRelative(-1); }
+  });
 
   let angleOffset = 0;
   let last = performance.now();
@@ -917,18 +1367,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     last = now;
     if (!rotationPaused) {
       angleOffset += (dt * 2 * Math.PI) / Math.max(duration, 0.001);
-      applyCircularLayout(angleOffset);
+      applyCircularLayout(angleOffset, now);
     }
     requestAnimationFrame(tick);
   };
 
-  applyCircularLayout();
-  // Cards sit stacked on top of each other (all at --x:0/--y:0) for a brief
-  // moment while their folders are being checked, above — they were styled
-  // like normal cards during that instant, so it briefly flashed as one
-  // plain box in the center. Now that they're actually laid out in the
-  // ring, let them look like normal cards again.
+  // First load: the logo stops pulsing and the first ring unfolds out of
+  // the centre the same way a newly chosen category does.
   WORK_GRID.classList.remove('is-loading');
+  if (categories.length) {
+    WORK_GRID.classList.add('is-switching');
+    switching = true;
+    const total = enterCategory(0, 1, performance.now() + 120);
+    updateCategoryUI(1);
+    setTimeout(() => {
+      switching = false;
+      WORK_GRID.classList.remove('is-switching');
+    }, total + 120);
+  }
+  applyCircularLayout(angleOffset);
   window.addEventListener('resize', () => applyCircularLayout(angleOffset));
   window.addEventListener('resize', () => {
     if (activeCard) recomputeGalleryFit();
