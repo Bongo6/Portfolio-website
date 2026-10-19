@@ -513,6 +513,10 @@ html, body, * {
   display: none;
 }
 
+.work-detail-description:empty {
+  display: none;
+}
+
 .work-detail-description {
   font-family: 'Genos', sans-serif;
   font-size: 21px;
@@ -523,6 +527,17 @@ html, body, * {
 
 /* Each line of the description gets its own little accent-colored dot,
    like a loose bullet list rather than one block of running text. */
+.work-detail-handle {
+  color: var(--color-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.work-detail-handle:hover {
+  border-bottom-color: var(--color-accent);
+}
+
 .work-detail-description-line {
   position: relative;
   margin: 0 0 12px;

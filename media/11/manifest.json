@@ -1,5 +1,11 @@
 [
   {
+    "index": 14,
+    "src": "14.mp4",
+    "type": "video",
+    "preview": "14.preview.jpg"
+  },
+  {
     "index": 1,
     "src": "1.png",
     "type": "image",
@@ -52,11 +58,5 @@
     "src": "13.png",
     "type": "image",
     "preview": "13.preview.jpg"
-  },
-  {
-    "index": 14,
-    "src": "14.mp4",
-    "type": "video",
-    "preview": "14.preview.jpg"
   }
 ]

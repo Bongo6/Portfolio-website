@@ -1,0 +1,2 @@
+Game asset for my work-in-progress arcade rally game.
+Made in Blender 4.5.4

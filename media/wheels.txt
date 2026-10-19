@@ -6,10 +6,9 @@
 # Categories after "(none)" get no wheel while grouped - the work still shows
 # on the wheels of its other categories.
 
-Experiments & glitch art: Glitch art, Experiments, Color, Painting
-3D & animation: Modeling, Shading, Animation, Character design, Game asset, First person, Furniture, Intro
-Interactive & music: Interactive, Music, MSK Museum, Huge collaboration project, Big project
-Graphic design: Poster design, Branding, Book cover design, Collection
-Web & UI: Web design, UI design, Client work
-Photo & video: Photography, Video
-(none): Rally
+3D animation & modeling: Modeling, Shading, Animation, Character design, Game asset, First person, Furniture, Intro
+Graphic design: Poster design, Branding, Book cover design, Collection, Web design, UI design, Client work
+Interactive design: Interactive, MSK Museum, Huge collaboration project
+Experimental work: Glitch art, Experiments, Color, Painting
+Photography & video work: Photography, Video
+(none): Rally, Music, Big project

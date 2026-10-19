@@ -182,6 +182,15 @@ def build_media_folder(folder, content):
     if not items:
         return None, unused
 
+    # Keep the order the gallery already had: works listed in the old
+    # manifest.json stay in that order (so a hand-arranged order, e.g. the
+    # video first, survives), and anything new goes at the end by number.
+    try:
+        old_order = [m["index"] for m in json.loads((folder / "manifest.json").read_text(encoding="utf-8"))]
+    except Exception:
+        old_order = []
+    items.sort(key=lambda it: (old_order.index(it["index"]) if it["index"] in old_order else len(old_order), it["index"]))
+
     manifest = [{k: v for k, v in item.items() if v is not None} for item in items]
     write_if_changed(folder / "manifest.json", json.dumps(manifest, indent=2) + "\n")
 
@@ -191,7 +200,7 @@ def build_media_folder(folder, content):
     if isinstance(old, str):
         old = {"description": old}
     defaults = {
-        "title.txt": f"TITLE-{folder.name}",
+        "title.txt": folder.name,
         "description.txt": old.get("description", ""),
         "programs.txt": ", ".join(old.get("programs", []) or []),
     }

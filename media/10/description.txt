@@ -1,0 +1,3 @@
+With @mari_indstg @duszaangelika @ellvandiest
+This was something we made for @mskgent where we used TouchDesigner and AI and made a website for an interactive showcase that generates a new painting, connected to the paintings next to it AND to whatever you want to see in it.
+Super cool stuff.

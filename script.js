@@ -437,11 +437,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   // its own little accent-colored dot) instead of one plain block of text.
   // Shared by the real panel and the flip's back face so neither one "pops"
   // into a different look when the overlay swaps out for the real thing.
+  // @names in a description (e.g. "with @mari_indstg") become links to
+  // that Instagram account, and web addresses (https://...) become links
+  // too, shown without the https:// part.
+  const linkHandles = (html) => html
+    .replace(/(^|[\s(])(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, (m, before, url) => {
+      const label = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+      return `${before}<a class="work-detail-handle" href="${url}" target="_blank" rel="noopener">${label}</a>`;
+    })
+    .replace(/(^|[\s(])@([A-Za-z0-9._]*[A-Za-z0-9_])/g,
+      (m, before, handle) => `${before}<a class="work-detail-handle" href="https://www.instagram.com/${handle}/" target="_blank" rel="noopener">@${handle}</a>`);
+
   const renderDescriptionHTML = (description) => {
-    const text = description || 'Description coming soon.';
-    const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
-    if (!lines.length) return `<p class="work-detail-description-line">${escapeHtml(text)}</p>`;
-    return lines.map((line) => `<p class="work-detail-description-line">${escapeHtml(line)}</p>`).join('');
+    // No description = nothing at all (the empty block is hidden by CSS).
+    const lines = (description || '').split('\n').map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return '';
+    return lines.map((line) => `<p class="work-detail-description-line">${linkHandles(escapeHtml(line))}</p>`).join('');
   };
 
   // Title/tag/description/programs for a card — read synchronously from its
@@ -1183,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const hint = document.getElementById('scroll-hint');
   const hintText = hint ? hint.querySelector('.scroll-hint-text') : null;
   const isTouch = window.matchMedia('(pointer: coarse)').matches;
-  if (hintText) hintText.textContent = isTouch ? 'Swipe up or down to switch category' : 'Scroll to switch category';
+  if (hintText) hintText.textContent = isTouch ? 'Swipe left or right to switch category' : 'Scroll to switch category';
   if (categories.length < 2) shell.classList.add('single-category');
 
   const pad2 = (n) => String(n).padStart(2, '0');
@@ -1324,7 +1335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }, { passive: true });
 
-  // Touch: swipe up = next category, swipe down = previous.
+  // Touch: swipe left (or up) = next category, right (or down) = previous.
   let touchStartY = null;
   let touchStartX = null;
   window.addEventListener('touchstart', (e) => {
@@ -1338,7 +1349,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dy = t.clientY - touchStartY;
     const dx = t.clientX - touchStartX;
     touchStartY = null;
-    if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx)) goRelative(dy < 0 ? 1 : -1);
+    // Left/right is what the hint on phones says; up/down works too.
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) goRelative(dx < 0 ? 1 : -1);
+    else if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx)) goRelative(dy < 0 ? 1 : -1);
   }, { passive: true });
 
   document.addEventListener('keydown', (e) => {
