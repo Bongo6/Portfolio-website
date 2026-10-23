@@ -1,124 +1,114 @@
 [
   {
     "folder": "media/01",
-    "title": "Glitch art experimentation set 1",
+    "title": "Experimentation graphic work",
     "description": "",
     "programs": [
       "TouchDesigner"
     ],
-    "category": "Glitch art"
+    "category": "Glitch art, Experiments, Branding"
   },
   {
     "folder": "media/02",
-    "title": "Glitch art experimentation set 2",
+    "title": "Experimentation graphic work",
     "description": "",
     "programs": [
       "TouchDesigner"
     ],
-    "category": "Glitch art"
+    "category": "Glitch art, Experiments, Branding"
   },
   {
     "folder": "media/03",
-    "title": "Glitch art experimentation set 3",
+    "title": "Experimentation graphic work",
     "description": "",
     "programs": [
       "TouchDesigner"
     ],
-    "category": "Glitch art"
+    "category": "Glitch art, Experiments, Branding"
   },
   {
     "folder": "media/04",
-    "title": "Glitch art experimentation set 4",
+    "title": "Experimentation graphic work",
     "description": "",
     "programs": [
       "TouchDesigner"
     ],
-    "category": "Glitch art"
+    "category": "Glitch art, Experiments, Branding"
   },
   {
     "folder": "media/05",
-    "title": "05",
+    "title": "Experimentation graphic work",
     "description": "",
     "programs": [
       "Photoshop"
     ],
-    "category": "3D & animation"
+    "category": "Experiments"
   },
   {
     "folder": "media/06",
-    "title": "06",
+    "title": "MOSS",
     "description": "MOSS, fill in description here",
     "programs": [
-      "Photoshop",
       "Blender"
     ],
-    "category": "3D & animation"
-  },
-  {
-    "folder": "media/07",
-    "title": "07",
-    "description": "",
-    "programs": [
-      "Photoshop"
-    ],
-    "category": "3D & animation"
+    "category": "Furniture, Branding"
   },
   {
     "folder": "media/09",
-    "title": "07",
-    "description": "",
+    "title": "Golden Record",
+    "description": "It was an assignment for school I never found time to upload.",
     "programs": [
-      "Photoshop",
       "Blender"
     ],
-    "category": "Photo & video"
+    "category": "Branding, Music"
   },
   {
     "folder": "media/10",
-    "title": "08",
-    "description": "",
+    "title": "Travellers Pallet",
+    "description": "With @mari_indstg @duszaangelika @ellvandiest\nThis was something we made for @mskgent where we used TouchDesigner and AI and made a website for an interactive showcase that generates a new painting, connected to the paintings next to it AND to whatever you want to see in it.\nSuper cool stuff.",
     "programs": [
-      "Photoshop"
+      "TouchDesigner",
+      "AI"
     ],
-    "category": "Photo & video"
+    "category": "MSK Museum, Interactive, Huge collaboration project, Music"
   },
   {
     "folder": "media/11",
-    "title": "09",
-    "description": "",
+    "title": "RUST-E & DUST-E",
+    "description": "Short film made in Blender for school, including character design.",
     "programs": [
-      "Photoshop",
       "Blender"
     ],
-    "category": "3D & animation"
+    "category": "Character design, Video"
   },
   {
     "folder": "media/13",
-    "title": "10",
+    "title": "La Bazouge-de-Chemeré",
     "description": "",
     "programs": [
       "Photoshop"
     ],
-    "category": "Photo & video"
+    "category": "Photography"
   },
   {
     "folder": "media/14",
-    "title": "11",
+    "title": "The Silent Hill part",
     "description": "",
     "programs": [
       "Photoshop",
       "Blender"
     ],
-    "category": "Photo & video"
+    "category": "Photography"
   },
   {
     "folder": "media/15",
-    "title": "12",
-    "description": "",
+    "title": "My own arms in Blender",
+    "description": "Made in Blender\nTexture painted in Blender\nGloves made in Photoshop\nAsset will be used for a game\nCompletely rigged and animatable",
     "programs": [
+      "Blender",
       "Photoshop"
     ],
-    "category": "3D & animation"
+    "category": "Character design, Modeling"
   },
   {
     "folder": "media/16",
@@ -127,162 +117,221 @@
     "programs": [
       "Blender"
     ],
-    "category": "3D & animation"
+    "category": "Animation, First person, Game asset"
   },
   {
     "folder": "media/17",
-    "title": "14",
-    "description": "",
+    "title": "Audio reactive Mondriaan inspired artwork",
+    "description": "Made in TouchDesigner, 2023\nAudio: G Jones - Which Way",
     "programs": [
-      "Photoshop"
+      "TouchDesigner"
     ],
-    "category": "Posters"
+    "category": "Experiments, Interactive, Music"
   },
   {
     "folder": "media/18",
-    "title": "15",
-    "description": "",
+    "title": "Rally 2025 Monte-Carlo custom poster design",
+    "description": "Made in Photoshop, 2025",
     "programs": [
       "Photoshop"
     ],
-    "category": "Posters"
+    "category": "Poster design, Rally"
   },
   {
     "folder": "media/19",
-    "title": "16",
-    "description": "",
+    "title": "Audi Sport Quattro S1 (inspired) car",
+    "description": "Game asset for my work-in-progress arcade rally game.\nMade in Blender 4.5.4",
     "programs": [
-      "Photoshop",
-      "Blender"
+      "Blender",
+      "Godot"
     ],
-    "category": "Posters"
+    "category": "Game asset, Rally"
   },
   {
     "folder": "media/20",
-    "title": "17",
-    "description": "",
+    "title": "AE86 (inspired) car",
+    "description": "Game asset for my work-in-progress arcade rally game.\nMade in Blender 4.5.4",
     "programs": [
-      "Photoshop"
+      "Blender",
+      "Godot"
     ],
-    "category": "Posters"
+    "category": "Game asset, Rally"
   },
   {
     "folder": "media/21",
-    "title": "18",
+    "title": "Weight",
     "description": "",
     "programs": [],
-    "category": "3D & animation"
+    "category": "Painting, Experiments, Color"
   },
   {
     "folder": "media/22",
-    "title": "19",
-    "description": "",
-    "programs": [],
-    "category": "3D & animation"
+    "title": "Audio reactive TouchDesigner artwork",
+    "description": "Made in TouchDesigner, 2025",
+    "programs": [
+      "TouchDesigner",
+      "Photoshop"
+    ],
+    "category": "Experiments, Color, Interactive"
   },
   {
     "folder": "media/23",
-    "title": "20",
-    "description": "",
-    "programs": [],
-    "category": "Posters"
+    "title": "Forum 8 Rally 2025 Japan custom poster design",
+    "description": "Made in Photoshop, 2025",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "Poster design, Rally"
   },
   {
     "folder": "media/24",
-    "title": "21",
-    "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "title": "Website for Eva Beeusaert",
+    "description": "Prototyped the website of @evabeeusaert in @figma while working for @repress_design\nLive at https://evabeeusaert.com/\nMade with Figma",
+    "programs": [
+      "Figma"
+    ],
+    "category": "Web design, UI design, Photography, Client work, Interactive"
   },
   {
     "folder": "media/25",
     "title": "22",
     "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "programs": [
+      "Blender",
+      "After Effects"
+    ],
+    "category": "Experiments, Music"
   },
   {
     "folder": "media/26",
-    "title": "23",
-    "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "title": "Digitalized Aphex Twin logo",
+    "description": "Digitalized @aphextwin.afx logo in @touchdesigner 🚀\nMade in TouchDesigner, 2023",
+    "programs": [
+      "TouchDesigner"
+    ],
+    "category": "Interactive, Music"
   },
   {
     "folder": "media/27",
-    "title": "24",
-    "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "title": "Experimenting with TouchDesigner",
+    "description": "Experimenting with @touchdesigner 🌠\nMade in TouchDesigner, 2023",
+    "programs": [
+      "TouchDesigner"
+    ],
+    "category": "Experiments, Interactive"
   },
   {
     "folder": "media/28",
-    "title": "25",
-    "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "title": "Experimenting with TouchDesigner 2",
+    "description": "Experimenting with @touchdesigner 🚀\nMade in TouchDesigner, 2023",
+    "programs": [
+      "TouchDesigner"
+    ],
+    "category": "Experiments, Interactive"
   },
   {
     "folder": "media/29",
-    "title": "26",
+    "title": "Toon shader",
     "description": "",
-    "programs": [],
-    "category": "3D & animation"
+    "programs": [
+      "Blender"
+    ],
+    "category": "Shading, Modeling"
   },
   {
     "folder": "media/30",
-    "title": "27",
-    "description": "",
-    "programs": [],
-    "category": "3D & animation"
+    "title": "BMO in Blender",
+    "description": "Material testing and experimentation",
+    "programs": [
+      "Blender"
+    ],
+    "category": "Shading, Modeling, Character design"
   },
   {
     "folder": "media/31",
-    "title": "28",
-    "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "title": "Floral",
+    "description": "Part of the branding for @floral_ff",
+    "programs": [
+      "TouchDesigner",
+      "Illustrator"
+    ],
+    "category": "Branding"
   },
   {
     "folder": "media/32",
-    "title": "29",
+    "title": "STRAYS",
     "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "programs": [
+      "Blender"
+    ],
+    "category": "Music, Intro, Big project, Modeling, Animation"
   },
   {
     "folder": "media/33",
     "title": "30",
     "description": "",
-    "programs": [],
-    "category": "Posters"
+    "programs": [
+      "Illustrator",
+      "After Effects"
+    ],
+    "category": "Poster design"
   },
   {
     "folder": "media/34",
-    "title": "31",
+    "title": "NIKE Skywalkers",
     "description": "",
-    "programs": [],
-    "category": "Posters"
+    "programs": [
+      "Photoshop",
+      "Blender",
+      "After Effects"
+    ],
+    "category": "Poster design, Branding, Modeling"
   },
   {
     "folder": "media/35",
-    "title": "32",
+    "title": "Material renders",
     "description": "",
-    "programs": [],
-    "category": "3D & animation"
+    "programs": [
+      "Blender"
+    ],
+    "category": "Shading, Experiments"
   },
   {
     "folder": "media/36",
-    "title": "33",
-    "description": "",
-    "programs": [],
-    "category": "Experiments"
+    "title": "Porsche branded UI icons",
+    "description": "Porsche branded UI icons for a website",
+    "programs": [
+      "After Effects"
+    ],
+    "category": "UI design"
   },
   {
     "folder": "media/37",
-    "title": "34",
-    "description": "",
-    "programs": [],
-    "category": "Posters"
+    "title": "Perfume book covers",
+    "description": "Some book covers I like from the book \"Perfume\" by Patrick Süskind",
+    "programs": [
+      "Photoshop"
+    ],
+    "category": "Book cover design, Collection"
+  },
+  {
+    "folder": "media/38",
+    "title": "Scorched - FAMAS",
+    "description": "FAMAS animations for Scorched, a low poly, first person, classic-style shooter I'm making with my brother\nEverything is low poly: for optimization, but also to keep the game realistic to finish with just the two of us\nI recently took over all the gun modeling and animating, and I'm now remodeling and re-animating every gun\nRight now the main focus is the reload animations and their timing\nOld build of the game: the game, animations and models are all still a work in progress, but we're making very good progress\nMade in Blender and Unreal Engine",
+    "programs": [
+      "Blender",
+      "Unreal Engine"
+    ],
+    "category": "Animation, Game asset, Modeling"
+  },
+  {
+    "folder": "media/39",
+    "title": "Scorched - M4",
+    "description": "M4 for Scorched, a low poly, first person, classic-style shooter I'm making with my brother\nModeled from the ground up and animated by me\nEverything is low poly: for optimization, but also to keep the game realistic to finish with just the two of us\nI recently took over all the gun modeling and animating, and I'm now remodeling and re-animating every gun\nRight now the main focus is the reload animations and their timing\nOld build of the game: the game, animations and models are all still a work in progress, but we're making very good progress\nMade in Blender and Unreal Engine",
+    "programs": [
+      "Blender",
+      "Unreal Engine"
+    ],
+    "category": "Animation, Game asset, Modeling"
   }
 ]

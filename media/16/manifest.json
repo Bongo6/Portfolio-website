@@ -22,5 +22,17 @@
     "src": "4.mp4",
     "type": "video",
     "preview": "4.preview.jpg"
+  },
+  {
+    "index": 5,
+    "src": "5.mp4",
+    "type": "video",
+    "preview": "5.preview.jpg"
+  },
+  {
+    "index": 6,
+    "src": "6.mp4",
+    "type": "video",
+    "preview": "6.preview.jpg"
   }
 ]

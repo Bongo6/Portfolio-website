@@ -296,12 +296,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       card._category = (worksByFolder[folder].category || '').trim();
       return;
     }
-    const [titleText, descriptionText, programsText, categoryText] = await Promise.all([
+    const [titleText, descriptionText, programsText, categoryText, badgeText] = await Promise.all([
       fetchText(`${folder}/title.txt`),
       fetchText(`${folder}/description.txt`),
       fetchText(`${folder}/programs.txt`),
       fetchText(`${folder}/category.txt`),
+      fetchText(`${folder}/badge.txt`),
     ]);
+    // badge.txt: short labels floating above the card, one per line, e.g.
+    // "New!" and "Work in progress". A line starting with "New" also makes
+    // the card one of the works the "New work" button (bottom right) shows.
+    // Delete the file (or a line) to remove the label again.
+    const badges = (badgeText || '').split(/\r?\n/).map((b) => b.trim()).filter(Boolean);
+    if (badges.length) {
+      const row = document.createElement('div');
+      row.className = 'card-badges';
+      badges.forEach((text) => {
+        const badgeEl = document.createElement('span');
+        badgeEl.className = 'card-badge';
+        if (/^new\b/i.test(text)) {
+          badgeEl.classList.add('is-new');
+          card._isNew = true;
+        }
+        badgeEl.textContent = text;
+        row.appendChild(badgeEl);
+      });
+      card.appendChild(row);
+      card.classList.add('has-badge');
+    }
     // Which wheel the card sits on — category.txt, else media/index.json.
     card._category = ((categoryText || '').split(/\r?\n/)[0] || '').trim()
       || ((mediaByFolder[folder] || {}).category || '').trim();
@@ -377,6 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       copy._programs = card._programs;
       copy._category = card._category;
       copy._wheel = name;
+      copy._isNew = card._isNew;
       copy._isCopy = true;
       WORK_GRID.insertBefore(copy, after.nextSibling);
       cards.splice(cards.indexOf(after) + 1, 0, copy);
@@ -1306,6 +1329,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   function goToCategory(index) {
     if (index === activeCategory) return;
     switchCategory(index, index > activeCategory ? 1 : -1);
+  }
+
+  // "New work" button (bottom right). It only shows when a work has a
+  // "New!" line in its badge.txt. Clicking it jumps to the wheel with the
+  // new work(s) and makes every new card glow for a few seconds.
+  const newWorkBtn = document.getElementById('new-work-btn');
+  const newCards = cards.filter((card) => card._isNew);
+  if (newWorkBtn && newCards.length) {
+    newWorkBtn.hidden = false;
+    let glowTimer = null;
+    newWorkBtn.addEventListener('click', () => {
+      if (activeCard) closeDetail();
+      const target = categories.findIndex((cat) => cat.cards.some((c) => c._isNew));
+      if (target !== -1) goToCategory(target);
+      newCards.forEach((c) => c.classList.remove('is-new-highlight'));
+      // eslint-disable-next-line no-unused-expressions
+      newWorkBtn.offsetWidth; // restart the glow if clicked again
+      newCards.forEach((c) => c.classList.add('is-new-highlight'));
+      clearTimeout(glowTimer);
+      glowTimer = setTimeout(() => {
+        newCards.forEach((c) => c.classList.remove('is-new-highlight'));
+      }, 4600);
+    });
   }
 
   // Mouse wheel / trackpad: one category per scroll gesture. Small scrolls

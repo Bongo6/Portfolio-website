@@ -1,0 +1,6 @@
+FAMAS animations for Scorched, a low poly, first person, classic-style shooter I'm making with my brother
+Everything is low poly: for optimization, but also to keep the game realistic to finish with just the two of us
+I recently took over all the gun modeling and animating, and I'm now remodeling and re-animating every gun
+Right now the main focus is the reload animations and their timing
+Old build of the game: the game, animations and models are all still a work in progress, but we're making very good progress
+Made in Blender and Unreal Engine
