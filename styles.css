@@ -484,6 +484,19 @@ html, body, * {
   letter-spacing: -0.02em;
 }
 
+/* badge.txt labels above the title in the detail panel */
+.work-detail-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.work-detail-badges .card-badge {
+  font-size: 15px;
+  padding: 6px 12px 5px;
+}
+
 /* Program chips (e.g. "Blender") for the detail panel — reuses the same
    .program-chip styling already defined for the ring-center hover label,
    just laid out as a left-to-right row instead of a stacked column. */

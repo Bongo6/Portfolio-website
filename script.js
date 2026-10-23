@@ -530,6 +530,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // when the overlay is removed at the end, nothing pops or snaps —
   // the back of the card already looked like the description page.
   // ---------------------------------------------------------------
+  // The card's badge.txt labels ("New!", "Work in progress"), repeated
+  // above the title in the detail panel.
+  const renderBadgesHTML = (card) => {
+    const badges = Array.from(card.querySelectorAll('.card-badge'));
+    if (!badges.length) return '';
+    return `<div class="work-detail-badges">${badges
+      .map((b) => `<span class="${escapeHtml(b.className)}">${escapeHtml(b.textContent)}</span>`)
+      .join('')}</div>`;
+  };
+
   const playCardFlip = (card, meta) => {
     const rect = card.getBoundingClientRect();
     const activeMedia = card.querySelector('.card-media img.active');
@@ -554,6 +564,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     back.className = 'card-flip-face back';
     back.innerHTML = `
       <div class="card-flip-back-inner">
+        ${renderBadgesHTML(card)}
         <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
         <div class="work-detail-programs">${renderProgramChipsHTML(meta.programs)}</div>
         ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
@@ -630,6 +641,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     back.className = 'card-flip-face back';
     back.innerHTML = `
       <div class="card-flip-back-inner">
+        ${renderBadgesHTML(card)}
         <h2 class="work-detail-title">${escapeHtml(meta.title)}</h2>
         <div class="work-detail-programs">${renderProgramChipsHTML(meta.programs)}</div>
         ${meta.tag ? `<div class="work-detail-tag">${escapeHtml(meta.tag)}</div>` : ''}
@@ -930,6 +942,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { folder, title, tag, description, programs } = meta || getCardMeta(card);
 
     detailTitle.textContent = title;
+    const oldBadges = detailTitle.parentNode.querySelector(':scope > .work-detail-badges');
+    if (oldBadges) oldBadges.remove();
+    const badgesHTML = renderBadgesHTML(card);
+    if (badgesHTML) detailTitle.insertAdjacentHTML('beforebegin', badgesHTML);
     if (detailPrograms) renderProgramChips(detailPrograms, programs);
     detailTag.textContent = tag;
     detailDescription.innerHTML = renderDescriptionHTML(description);
