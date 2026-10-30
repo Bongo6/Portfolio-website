@@ -727,6 +727,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Icons show the mode a click would switch TO.
   const STACK_HORIZONTAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>';
   const STACK_VERTICAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="5" rx="1"/><rect x="4" y="10" width="16" height="5" rx="1"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>';
+  // Phones open the gallery fully zoomed in (photos at full width), since
+  // the narrow screen makes the normal size too small.
+  const defaultGalleryZoom = () => (window.matchMedia('(max-width: 640px)').matches ? GALLERY_ZOOM_MAX : 1);
   let galleryZoom = 1;
   let galleryLayoutMode = 'vertical'; // default layout when a gallery opens
 
@@ -980,7 +983,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailGallery.appendChild(galleryItem);
     });
 
-    galleryZoom = 1;
+    galleryZoom = defaultGalleryZoom();
     detailGallery.style.removeProperty('--gallery-item-height');
     detailGallery.style.removeProperty('--gallery-item-width-pct');
     if (galleryZoomControls) {
