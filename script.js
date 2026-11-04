@@ -727,9 +727,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Icons show the mode a click would switch TO.
   const STACK_HORIZONTAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>';
   const STACK_VERTICAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="5" rx="1"/><rect x="4" y="10" width="16" height="5" rx="1"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>';
-  // Phones open the gallery fully zoomed in (photos at full width), since
-  // the narrow screen makes the normal size too small.
-  const defaultGalleryZoom = () => (window.matchMedia('(max-width: 640px)').matches ? GALLERY_ZOOM_MAX : 1);
+  // Zoom level a gallery opens at. Computers start 6 "+" clicks in (2.2);
+  // phones start fully zoomed in (photos at full width), since the narrow
+  // screen makes anything smaller too small.
+  const GALLERY_DEFAULT_ZOOM = 2.2;
+  const defaultGalleryZoom = () => (window.matchMedia('(max-width: 640px)').matches ? GALLERY_ZOOM_MAX : GALLERY_DEFAULT_ZOOM);
   let galleryZoom = 1;
   let galleryLayoutMode = 'vertical'; // default layout when a gallery opens
 
@@ -788,7 +790,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (galleryZoomOut) galleryZoomOut.addEventListener('click', () => setGalleryZoom(galleryZoom - GALLERY_ZOOM_STEP));
   if (galleryLayoutToggle) {
     galleryLayoutToggle.addEventListener('click', () => {
-      setGalleryLayoutMode(galleryLayoutMode === 'vertical' ? 'horizontal' : 'vertical');
+      // Each layout starts at its own normal zoom (2.2x in the side-by-side
+      // row would make the photos far too tall).
+      const next = galleryLayoutMode === 'vertical' ? 'horizontal' : 'vertical';
+      galleryZoom = next === 'vertical' ? defaultGalleryZoom() : 1;
+      setGalleryLayoutMode(next);
     });
   }
 
