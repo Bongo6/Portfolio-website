@@ -333,5 +333,15 @@
       "Unreal Engine"
     ],
     "category": "Animation, Game asset, Modeling"
+  },
+  {
+    "folder": "media/40",
+    "title": "Scorched - Remington 700",
+    "description": "Remington 700 animations for Scorched, a low poly, first person, classic-style shooter I'm making with my brother\nEverything is low poly: for optimization, but also to keep the game realistic to finish with just the two of us\nI recently took over all the gun modeling and animating, and I'm now remodeling and re-animating every gun\nRight now the main focus is the reload animations and their timing\nOld build of the game: the game, animations and models are all still a work in progress, but we're making very good progress\nMade in Blender and Unreal Engine",
+    "programs": [
+      "Blender",
+      "Unreal Engine"
+    ],
+    "category": "Animation, Game asset, Modeling"
   }
 ]
