@@ -43,20 +43,14 @@
   },
   {
     "index": 8,
-    "src": "8.mp4",
-    "type": "video",
+    "src": "8.png",
+    "type": "image",
     "preview": "8.preview.jpg"
   },
   {
     "index": 9,
-    "src": "9.mp4",
-    "type": "video",
+    "src": "9.png",
+    "type": "image",
     "preview": "9.preview.jpg"
-  },
-  {
-    "index": 10,
-    "src": "10.mp4",
-    "type": "video",
-    "preview": "10.preview.jpg"
   }
 ]
